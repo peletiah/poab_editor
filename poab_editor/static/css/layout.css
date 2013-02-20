@@ -3,8 +3,23 @@ body
 margin: 1em 2em; 
 }
 
-.img_metadata {
+
+.tinymc {
+  display:inline-block;
+  vertical-align: top;
+  margin: 0 2em 2em 0;
+}
+
+
+
+.metadata {
   display: inline-block;
+}
+
+
+
+img {
+  margin: 0 0 1em 0;
 }
 
 .paneContent

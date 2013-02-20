@@ -47,7 +47,10 @@ def update_image_metadata(request):
 def new_entry(request):
     images = Image.get_images()
     images_json = json.dumps([i.reprJSON() for i in images],cls=ComplexEncoder)
-    return {'images' : images_json}
+    
+    print images
+    print 'bla'
+    return {'images' : images_json, 'logtext': json.dumps('bla')}
 
 @view_config(route_name='fileupload')
 def fileupload(request):
@@ -63,6 +66,7 @@ def fileupload(request):
     
     basedir = '/srv/trackdata/bydate'
     img_prvw_w='500' #width of images in editor-preview
+    img_thumb_w='150' #width of images in editor-preview
     filedir = filetools.createdir(basedir, author.name, today)
     imgdir = filedir+'images/sorted/'
 
@@ -73,6 +77,7 @@ def fileupload(request):
             if upload: #only save files when upload-checkbox has been ticked
                 filehash = filetools.safe_file_local(imgdir, file)
                 imagetools.resize(imgdir, imgdir+'preview/', file.filename, img_prvw_w)
+                imagetools.resize(imgdir, imgdir+'thumbs/', file.filename, img_thumb_w)
 
             image = Image(name=file.filename, location=imgdir, title=None, comment=None, alt=None, hash=filehash, author=author.id, last_change=timetools.now())
             DBSession.add(image)

@@ -1,6 +1,6 @@
 *.py[co]
 
-.swp
+*.swp
 
 *.ini
 *.ini

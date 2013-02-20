@@ -16,16 +16,34 @@
   <script src="/static/js/controllers.js"></script>
 </head>
 <body>
-<div ng-init="images=${images}">
+<div ng-init="images=${images}; editor.logtext=${logtext}" ng-controller="TabsCtrl">
   <tabs>
+   <pane class="paneContent" heading="Editor" active="pane.active">
+      <div class="tinymc">
+        <textarea ui-tinymce ng-model="editor.logtext"></textarea>
+      </div>
+      <div class="metadata">
+      <div ng-repeat="image in images">
+          <a ng-click="insertImageTag(image.id)" href="#">
+            <img src="static{{image.location}}thumbs/{{image.name}}">
+          </a>
+          <big>imgid{{image.id}}</big>
+      </div>
+      </div>
+      <div>
+      <input class="btn btn-small btn-primary" type="submit" ng-click="updatePreview()" value="update" />
+      </div>
+      <hr>
+      <div compile="editor.preview"></div>
+   </pane>
 
-  <pane class="paneContent" heading="Images" >
-    <form class="form-horizontal" ng-submit="saveMetadata()" ng-controller="ImageCtrl">
+  <pane class="paneContent" heading="Images" active="pane.active">
+    <form class="form-horizontal" ng-submit="updateImageMetadata()">
       <input class="btn btn-small btn-primary" type="submit" name="btnSubmit" value="Save" />
         <hr>
       <div ng-repeat="image in images">
           <img src="static{{image.location}}preview/{{image.name}}">
-          <div class="img_metadata">
+          <div class="metadata">
               <div class="control-group">
                 <label class="control-label" for="inputTitle">image title</label>
                 <div class="controls">
@@ -52,13 +70,7 @@
    </pane>
 
 
-
-   <pane class="paneContent" heading="Editor">
-      <textarea ui-tinymce ng-model="tinymce"></textarea>
-   </pane>
-
-
-   <pane class="paneContent" heading="Add Images">
+   <pane class="paneContent" heading="Add Images" active="pane.active">
       <form action="/fileupload" method="post" accept-charset="utf-8" enctype="multipart/form-data">
              <div class="control-group">
                  <div class="controls">
@@ -68,6 +80,10 @@
                  </div>
              </div>
         </form>
+    </pane>
+
+    <pane class="paneContent" heading="Preview" active="pane.active">
+      <div compile="editor.preview"></div>
     </pane>
   </tabs>
 </div>
