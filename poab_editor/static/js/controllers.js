@@ -42,31 +42,35 @@ EditorModule.value('ui.config', {
 
 
 var TabsCtrl = function ($scope, $http) {
-  $scope.panes = [
-    { title:'Preview', content:'<div compile="editor.preview"></div>' }
-  ];
-  
   $scope.updatePreview = function() {
+    log_json = JSON.stringify($scope.log, null, 0)
+    console.log(log_json)
+    $http({
+        url:'/update_log',
+        data: log_json,
+        method: 'POST',
+        headers : {'Content-Type':'application/json; charset=UTF-8'}
+      }).success($scope.HTTPPostSuccess);
+    //regex-match to find [imgidNN]-tags and replace them with <img src=...>-tags for previewing
     var re = /\[imgid(\d{1,})\]/g,
         imageIdMatch,
         imageIds = [];
-    $scope.editor.preview=$scope.editor.logtext
-    while (imageIdMatch = re.exec($scope.editor.logtext))
+    $scope.log.preview=$scope.log.content
+    while (imageIdMatch = re.exec($scope.log.content))
       imageIds.push(+imageIdMatch[1]);
     for (var i = 0; i < imageIds.length; i++) {
-      for ( var j = 0; j < $scope.images.length; j++) {
+     for ( var j = 0; j < $scope.images.length; j++) {
         if (imageIds[i] == $scope.images[j].id) {
           var re = new RegExp("\\[imgid"+imageIds[i]+"\\]", "g")
           console.log("[imgid"+imageIds[i]+"]", $scope.images[j].id)
-          //bla=bla.replace(re, 'src'+$scope.images[j].id)
-          $scope.editor.preview=$scope.editor.preview.replace(re, '<img src="static'+$scope.images[j].location+'preview/'+$scope.images[j].name+'">')
+          $scope.log.preview=$scope.log.preview.replace(re, '<img src="static'+$scope.images[j].location+'preview/'+$scope.images[j].name+'">')
         }
       }
     }
   }
 
 
-  $scope.metadataUpdateSuccess = function (data, status) {
+  $scope.HTTPPostSuccess = function (data, status) {
     console.log('done')
   }
 
@@ -78,8 +82,10 @@ var TabsCtrl = function ($scope, $http) {
         data: images_json,
         method: 'POST',
         headers : {'Content-Type':'application/json; charset=UTF-8'}
-      }).success($scope.metadataUpdateSuccess);
+      }).success($scope.HTTPPOSTSuccess);
   }
+
+
 
   $scope.insertImageTag = function(imageId) {
     tinyMCE.execCommand("mceInsertContent", false, '<p>[imgid'+imageId.toString()+']</p><p></p>');

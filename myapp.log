@@ -1,0 +1,8 @@
+2013-02-21 17:30:26,538 INFO  [sqlalchemy.engine.base.Engine][Dummy-2] select version()
+2013-02-21 17:30:26,538 INFO  [sqlalchemy.engine.base.Engine][Dummy-2] {}
+2013-02-21 17:30:26,540 INFO  [sqlalchemy.engine.base.Engine][Dummy-2] select current_schema()
+2013-02-21 17:30:26,541 INFO  [sqlalchemy.engine.base.Engine][Dummy-2] {}
+2013-02-21 17:30:26,545 INFO  [sqlalchemy.engine.base.Engine][Dummy-2] BEGIN (implicit)
+2013-02-21 17:30:26,546 INFO  [sqlalchemy.engine.base.Engine][Dummy-2] SELECT image.id AS image_id, image.name AS image_name, image.location AS image_location, image.title AS image_title, image.comment AS image_comment, image.alt AS image_alt, image.hash AS image_hash, image.author AS image_author, image.last_change AS image_last_change 
+FROM image
+2013-02-21 17:30:26,546 INFO  [sqlalchemy.engine.base.Engine][Dummy-2] {}

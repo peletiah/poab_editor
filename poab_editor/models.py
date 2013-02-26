@@ -38,19 +38,42 @@ class Log(Base):
     id = Column(Integer, primary_key=True)
     topic = Column(Text)
     content = Column(Text)
-    created = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
+    created = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
+    published = Column(types.TIMESTAMP(timezone=False))
     image = relation('Image', secondary=log_image_table, backref='imageref')
 
     
-    def __init__(self, topic, content, created, author, last_change):
+    def __init__(self, topic, content, author, created=timetools.now(), \
+                last_change=timetools.now(), published=None):
         self.topic = topic
         self.content = content
-        self.created = created
         self.author = author
+        self.created = created
         self.last_change = last_change
-     
+        self.published = published
+    
+    def reprJSON(self):
+        if self.published:
+            published = self.published.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            published = self.published
+        return dict(id=self.id, topic=self.topic, content=self.content, author=self.author, \
+                    created = self.created.strftime("%Y-%m-%d %H:%M:%S"), \
+                    last_change=self.last_change.strftime("%Y-%m-%d %H:%M:%S"), published=self.published)
+
+    @classmethod
+    def get_logs(self):
+        logs = DBSession.query(Log).all()
+        return logs
+
+    @classmethod
+    def get_log_by_id(self, id):
+        log = DBSession.query(Log).filter(Log.id == id).one()
+        return log
+
+
 
 class Image(Base):
     __tablename__ = 'image'
@@ -63,6 +86,7 @@ class Image(Base):
     hash = Column(Text)
     author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
+    published = Column(types.TIMESTAMP(timezone=False))
     log = relation('Log', secondary=log_image_table, backref='logref')
     __table_args__ = (
         UniqueConstraint('location', 'name', name='location_name'),
@@ -71,7 +95,7 @@ class Image(Base):
     
 
 
-    def __init__(self, name, location, title, comment, alt, hash, author, last_change):
+    def __init__(self, name, location, title, comment, alt, hash, author, last_change=timetools.now(), published=None):
         self.name = name
         self.location = location
         self.title = title
@@ -80,10 +104,16 @@ class Image(Base):
         self.hash = hash
         self.author = author
         self.last_change = last_change
+        self.published = published
 
     def reprJSON(self):
+        if self.published:
+            published = self.published.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            published = self.published
         return dict(id=self.id, name=self.name, location=self.location, title=self.title, 
-                    alt=self.alt, comment=self.comment, hash=self.hash, author=self.author)
+                    alt=self.alt, comment=self.comment, hash=self.hash, author=self.author,
+                    last_change=self.last_change.strftime("%Y-%m-%d %H:%M:%S"), published=published)
 
     @classmethod
     def get_images(self):
