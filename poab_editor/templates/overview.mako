@@ -16,16 +16,22 @@
   <script src="/static/js/controllers.js"></script>
 </head>
 <body>
-<div ng-init="logs=${logs}">
+<div ng-init="logs=${logs}" ng-controller="OverviewCtrl">
   <div>
     <a href="/editor">Add a new entry</a>
     <hr>
   </div>
+  <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
   <div ng-repeat="log in logs">
-    <div>'{{log.topic}}' <a href="/editor?logid={{log.id}}">edit</a></div>
-    <div><small>created on {{log.created}}</small></div>
-    <div compile="log.preview"></div>
-    <hr>
+    <div ng-show="log.id">
+      <div>
+        <a href="/editor?logid={{log.id}}">{{log.topic}} <i class="icon-pencil"></i></a>
+        <a href="#" ng-click="confirmDelete(log)"><i class="icon-trash"></i></a>
+      </div>
+      <div><small>created on {{log.created}}</small></div>
+      <div compile="log.preview"></div>
+      <hr>
+    </div>
   </div>
  </body>
 </html>

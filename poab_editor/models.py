@@ -33,6 +33,12 @@ log_image_table = Table('log_image', Base.metadata,
     UniqueConstraint('log_id', 'image_id', name='log_id_image_id'))
 
 
+log_track_table = Table('log_track', Base.metadata,
+    Column('log_id', Integer, ForeignKey('log.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
+    Column('track_id', Integer, ForeignKey('track.id',onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
+    UniqueConstraint('log_id', 'track_id', name='log_id_track_id'))
+
+
 class Log(Base):
     __tablename__ = 'log'
     id = Column(Integer, primary_key=True)
@@ -43,6 +49,7 @@ class Log(Base):
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
     image = relation('Image', secondary=log_image_table, backref='imageref')
+    track = relation('Track', secondary=log_track_table, backref='trackref')
 
     
     def __init__(self, topic, content, author, created=timetools.now(), \
@@ -65,7 +72,7 @@ class Log(Base):
 
     @classmethod
     def get_logs(self):
-        logs = DBSession.query(Log).all()
+        logs = DBSession.query(Log).order_by(Log.created.desc()).all()
         return logs
 
     @classmethod
@@ -87,9 +94,9 @@ class Image(Base):
     author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
-    log = relation('Log', secondary=log_image_table, backref='logref')
+    log = relation('Log', secondary=log_image_table, backref='imagelogref')
     __table_args__ = (
-        UniqueConstraint('location', 'name', name='location_name'),
+        UniqueConstraint('location', 'name', name='image_location_name'),
         {}
         )
     
@@ -108,12 +115,12 @@ class Image(Base):
 
     def reprJSON(self):
         if self.published:
-            published = self.published.strftime("%Y-%m-%d %H:%M:%S")
+            published = self.published.strftime("%Y-%m-%d")
         else:
             published = self.published
         return dict(id=self.id, name=self.name, location=self.location, title=self.title, 
                     alt=self.alt, comment=self.comment, hash=self.hash, author=self.author,
-                    last_change=self.last_change.strftime("%Y-%m-%d %H:%M:%S"), published=published)
+                    last_change=self.last_change.strftime("%Y-%m-%d"), published=published)
 
     @classmethod
     def get_images(self):
@@ -122,8 +129,64 @@ class Image(Base):
 
     @classmethod
     def get_image_by_id(self, id):
-        image = DBSession.query(Image).filter(Image.id == id).one()
+        try:
+            image = DBSession.query(Image).filter(Image.id == id).one()
+            return image
+        except Exception, e:
+            print "Error retrieving extension %s: ",e
+            return None
+
+    @classmethod
+    def get_image_by_hash(self, hash):
+        image = DBSession.query(Image).filter(Image.hash == hash).one()
         return image
+
+
+class Track(Base):
+    __tablename__ = 'track'
+    id = Column(Integer, primary_key=True)
+    name = Column(Text)
+    location = Column(Text)
+    hash = Column(Text)
+    author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
+    published = Column(types.TIMESTAMP(timezone=False))
+    log = relation('Log', secondary=log_track_table, backref='tracklogref')
+    __table_args__ = (
+        UniqueConstraint('location', 'name', name='track_location_name'),
+        {}
+        )
+    
+
+
+    def __init__(self, name, location, hash, author, published=None):
+        self.name = name
+        self.location = location
+        self.hash = hash
+        self.author = author
+        self.published = published
+
+    def reprJSON(self):
+        if self.published:
+            published = self.published.strftime("%Y-%m-%d")
+        else:
+            published = self.published
+        return dict(id=self.id, name=self.name, location=self.location, hash=self.hash, 
+                    author=self.author, published=published)
+
+    @classmethod
+    def get_tracks(self):
+        tracks = DBSession.query(Track).all()
+        return tracks
+
+    @classmethod
+    def get_track_by_id(self, id):
+        track = DBSession.query(Track).filter(Track.id == id).one()
+        return track
+
+    @classmethod
+    def get_track_by_hash(self, hash):
+        track = DBSession.query(Track).filter(Track.hash == hash).one()
+        return track
 
 
 class Author(Base):

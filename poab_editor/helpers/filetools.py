@@ -47,9 +47,9 @@ def safe_file_local(filelocation, file):
     return hashlib.sha256(open(filelocation+file.filename).read()).hexdigest()
 
 
-def file_exists(images_in_db, filehash):
-    for image in images_in_db:
-        if image.hash == filehash:
-            print "File %s already in DB" % image.location
+def file_exists(files_in_db, filehash):
+    for file in files_in_db:
+        if file.hash == filehash:
+            print "File %s already in DB" % file.location
             return True
     return False

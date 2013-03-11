@@ -5,6 +5,7 @@
   <title>poab Editor</title>
   <link rel="stylesheet" href="/static/css/bootstrap/css/bootstrap.css">
   <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/colorbox.css">
   <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui.css">
   <script type="text/javascript" src="/static/lib/jquery/1.9.0/jquery.min.js"></script>
   <script type="text/javascript" src="/static/lib/jqueryui/1.10.0/jquery-ui.min.js"></script>
@@ -13,13 +14,17 @@
   <script type="text/javascript" src="/static/lib/ng-bootstrap/ui-bootstrap-tpls-0.1.0.js"></script>
   <script type="text/javascript" src="/static/lib/tinymce/3.5.8/tiny_mce_src.js"></script>
   <script type="text/javascript" src="/static/lib/tinymce/3.5.8/jquery.tinymce.js"></script>
+  <script type="text/javascript" src="/static/lib/colorbox/jquery.colorbox.js"></script>
   <script src="/static/js/controllers.js"></script>
 </head>
 <body>
 
-<div class="header"><a href="/">&#8592; Go to all entries</a></div>
-<div ng-init="images=${images}; log=${log}" ng-controller="TabsCtrl">
+<div ng-init="images=${images}; log=${log}; tracks=${tracks}" ng-controller="EditorCtrl">
+  <div class="header"><a href="/">&#8592; Go to all entries</a></div>
   <tabs>
+
+
+
    <pane class="paneContent" heading="Editor" active="pane.active">
       <div>
         <input type="text" ng-model="log.topic" placeholder="Topic">
@@ -27,28 +32,52 @@
       <div class="tinymc">
         <textarea ui-tinymce ng-model="log.content"></textarea>
        <div>
-      <input class="btn btn-small btn-primary" type="submit" ng-click="updatePreview(log)" value="preview" />
+      <button class="btn btn-small btn-primary" id="preview" colorbox transition="fade", speed=350, href="/preview?logid={{log.id}}">preview</button>
+      <button class="btn btn-small btn-primary" id="save" ng-click="saveLog()">save</button>
+      <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
       </div>
       </div>
-      <div class="metadata">
+      <div class="overflow">
         <div ng-repeat="image in images">
-          <div ng-show="image.id"> <!-- only display this section if the image.id is not null -->
+          <div class="overflowContent" ng-show="image.id"> <!-- only display this section if the image.id is not null -->
             <a ng-click="insertImageTag(image.id)" href="#">
               <img src="static{{image.location}}thumbs/{{image.name}}">
             </a>
-            <small>imgid{{image.id}}</small>
+            <span class="imgid">{{image.id}}</span>
           </div>
         </div>
       </div>
      <hr>
-      <div compile="log.preview"></div>
    </pane>
 
   <pane class="paneContent" heading="Images" active="pane.active">
+    <div>
+      <div>
+        <input type="file" ng-model-instant id="fileToUpload" multiple onchange="angular.element(this).scope().setFiles(this)" />
+        <label class="checkbox"><input ng-model="upload" type="checkbox" name="upload"/> Upload</label>
+      </div>
+      <div ng-show="files.length">
+        <ul ng-repeat="file in files.slice(0)">
+          <li>
+            <span>{{file.webkitRelativePath || file.name}}</span>
+            (<span ng-switch="file.size > 1024*1024">
+              <span ng-switch-when="true">{{file.size / 1024 / 1024 | number:2}} MB</span>
+              <span ng-switch-default>{{file.size / 1024 | number:2}} kB</span>
+            </span>)
+           </li>
+        </ul>
+        <input class="btn btn-small btn-primary" type="button" ng-click="uploadFile('image')" value="Add files" />
+      </div>
+      <div ng-show='progressVisible'>
+        <img src='/static/images/icons/load_indicator.gif'> <small>Adding files, please wait...</small>
+      </div>
+    </div>
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
     <form class="form-horizontal" ng-submit="updateImageMetadata()">
-      <input class="btn btn-small btn-primary" type="submit" name="btnSubmit" value="Save" />
-        <hr>
-      <div ng-repeat="image in images">
+     <hr>
+     <input ng-show="images[1].id" class="btn btn-small btn-primary" type="submit" name="btnSubmit" value="Save" />
+     <hr>
+     <div ng-repeat="image in images | filter:query">
         <div ng-show="image.id"> <!-- only display this section if the image.id is not null -->
           <img src="static{{image.location}}preview/{{image.name}}">
           <div class="metadata">
@@ -74,26 +103,44 @@
         <hr>
         </div>
       </div>
-      <input class="btn btn-small btn-primary" type="submit" name="btnSubmit" value="Save" />
+      <div ng-show="images[0].id"><input class="btn btn-small btn-primary" type="submit" name="btnSubmit" value="Save" /></div>
    </form>
    </pane>
 
+  <pane class="paneContent" heading="Track" active="pane.active">
+    <div>
+      <div>
+        <input type="file" ng-model-instant id="fileToUpload" multiple onchange="angular.element(this).scope().setFiles(this)" />
+        <label class="checkbox"><input ng-model="upload" type="checkbox" name="upload"/> Upload</label>
+      </div>
+      <div ng-show="files.length">
+        <ul ng-repeat="file in files.slice(0)">
+          <li>
+            <span>{{file.webkitRelativePath || file.name}}</span>
+            (<span ng-switch="file.size > 1024*1024">
+              <span ng-switch-when="true">{{file.size / 1024 / 1024 | number:2}} MB</span>
+              <span ng-switch-default>{{file.size / 1024 | number:2}} kB</span>
+            </span>)
+           </li>
+        </ul>
+        <input class="btn btn-small btn-primary" type="button" ng-click="uploadFile('track')" value="Add files" />
+      </div>
+      <div ng-show='progressVisible'>
+        <img src='/static/images/icons/load_indicator.gif'> <small>Adding files, please wait...</small>
+      </div>
+    </div>
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+    <hr>
+    <ul ng-repeat="track in tracks | filter:query">
+      <div ng-show="track.id"> <!-- only display this section if the image.id is not null -->
+        <li>{{track.location}}{{track.name}}</li>
+      </div>
+    </ul>
 
-   <pane class="paneContent" heading="Add Images" active="pane.active">
-      <form action="/fileupload" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-             <div class="control-group">
-                 <div class="controls">
-                    <div><input type="file" name="files" multiple='multiple'/></div>
-                    <div><input class="btn btn-small btn-primary" type="submit" name="btnSubmit" value="Add Images" /></div>
-                    <label class="checkbox"><input type="checkbox" name="upload" checked/> Upload</label>
-                 </div>
-             </div>
-        </form>
     </pane>
 
-    <pane class="paneContent" heading="Preview" active="pane.active">
-      <div compile="log.preview"></div>
-    </pane>
+
+
   </tabs>
 </div>
 </body>

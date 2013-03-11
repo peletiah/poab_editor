@@ -15,7 +15,9 @@ def main(global_config, **settings):
     config.add_route('edit_entry', '/{entry}/edit')
     config.add_route('fileupload', '/fileupload')
     config.add_route('update_image_metadata', '/update_image_metadata')
-    config.add_route('update_log', '/update_log')
+    config.add_route('save_log', '/save_log')
+    config.add_route('delete_log', '/delete')
+    config.add_route('preview', '/preview')
     config.scan()
     return config.make_wsgi_app()
 

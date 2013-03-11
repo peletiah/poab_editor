@@ -3,15 +3,17 @@
 FileUploadCtrl.$inject = ['$scope']
 
 function FileUploadCtrl(scope) {
+    scope.upload = true
     scope.setFiles = function(element) {
-    scope.$apply(function(scope) {
-      console.log('files:', element.files);
-      // Turn the FileList object into an Array
+      console.log(scope.upload)
+      scope.$apply(function(scope) {
+        console.log('files:', element.files);
+        // Turn the FileList object into an Array
         scope.files = []
         for (var i = 0; i < element.files.length; i++) {
           scope.files.push(element.files[i])
         }
-      scope.progressVisible = false
+        scope.progressVisible = false
       });
     };
 
@@ -19,6 +21,7 @@ function FileUploadCtrl(scope) {
         var fd = new FormData()
         for (var i in scope.files) {
             fd.append("uploadedFile", scope.files[i])
+            fd.append("upload", scope.upload)
         }
         var xhr = new XMLHttpRequest()
         xhr.upload.addEventListener("progress", uploadProgress, false)
@@ -44,10 +47,12 @@ function FileUploadCtrl(scope) {
         /* This event is raised when the server send back a response */
         scope.$apply( function(){
           scope.filenames = []
-          files_json = JSON.parse(evt.target.responseText)['files']
+          console.log(evt.target.responseText)
+          files_json = JSON.parse(evt.target.responseText)
           for (var i = 0; i < files_json.length; i++) {
             scope.filenames.push(files_json[i])
           }
+          console.log(scope.filenames)
         })
     }
 

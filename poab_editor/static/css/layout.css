@@ -8,6 +8,7 @@ margin: 1em 2em;
   display:inline-block;
   vertical-align: top;
   margin: 0 2em 2em 0;
+  float: left;
 }
 
 .header {
@@ -15,9 +16,10 @@ margin: 1em 2em;
 }
 
 
-.btn {
+#preview {
   margin: 0.5em 0 0.5em 0;
 }
+
 
 .metadata {
   display: inline-block;
@@ -26,6 +28,38 @@ margin: 1em 2em;
 .metadata img {
   margin: 0 0 1em 0;
 }
+
+.overflow {
+    height: 500px;
+    width: 330px;
+    padding: 0 2em;
+    float: left;
+    display: inline-block;
+    overflow: auto
+}
+
+.overflowContent {
+  float: left;
+  height: auto;
+  width: 150px;
+  margin: 3px 3px;
+  padding: 0;
+  position: relative;
+
+}
+
+.imgid {
+  font-size: 0.7em;
+  font-weight: bold;
+  color: white;
+  position: absolute;
+  left:0; bottom:0;
+  padding:  0 0 0 0.4em;
+  overflow: hidden;
+  display: block;
+  opacity: 0.8;
+}
+
 
 .paneContent
 {
