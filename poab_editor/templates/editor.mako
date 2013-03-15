@@ -1,27 +1,10 @@
-<!doctype html>
-<html lang="en" ng-app='editor'>
-<head>
-  <meta charset="utf-8">
-  <title>poab Editor</title>
-  <link rel="stylesheet" href="/static/css/bootstrap/css/bootstrap.css">
-  <link rel="stylesheet" href="/static/css/layout.css">
-  <link rel="stylesheet" href="/static/css/colorbox.css">
-  <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui.css">
-  <script type="text/javascript" src="/static/lib/jquery/1.9.0/jquery.min.js"></script>
-  <script type="text/javascript" src="/static/lib/jqueryui/1.10.0/jquery-ui.min.js"></script>
-  <script type="text/javascript" src="/static/lib/angularjs/1.0.4/angular.js"></script>
-  <script type="text/javascript" src="/static/lib/angular-ui-0.3.2/build/angular-ui.js"></script>
-  <script type="text/javascript" src="/static/lib/ng-bootstrap/ui-bootstrap-tpls-0.1.0.js"></script>
-  <script type="text/javascript" src="/static/lib/tinymce/3.5.8/tiny_mce_src.js"></script>
-  <script type="text/javascript" src="/static/lib/tinymce/3.5.8/jquery.tinymce.js"></script>
-  <script type="text/javascript" src="/static/lib/colorbox/jquery.colorbox.js"></script>
-  <script src="/static/js/controllers.js"></script>
-</head>
-<body>
+<%inherit file='base.mako' />
+
+
+<%include file='header.mako' />
 
 <div ng-init="images=${images}; log=${log}; tracks=${tracks}" ng-controller="EditorCtrl">
-  <div class="header"><a href="/">&#8592; Go to all entries</a></div>
-  <tabs>
+<tabs>
 
 
 
@@ -41,7 +24,7 @@
         <div ng-repeat="image in images">
           <div class="overflowContent" ng-show="image.id"> <!-- only display this section if the image.id is not null -->
             <a ng-click="insertImageTag(image.id)" href="#">
-              <img src="static{{image.location}}thumbs/{{image.name}}">
+              <img src="/static{{image.location}}thumbs/{{image.name}}">
             </a>
             <span class="imgid">{{image.id}}</span>
           </div>
@@ -79,7 +62,7 @@
      <hr>
      <div ng-repeat="image in images | filter:query">
         <div ng-show="image.id"> <!-- only display this section if the image.id is not null -->
-          <img src="static{{image.location}}preview/{{image.name}}">
+          <img src="/static{{image.location}}preview/{{image.name}}">
           <div class="metadata">
               <div class="control-group">
                 <label class="control-label" for="inputTitle">image title</label>
@@ -143,6 +126,4 @@
 
   </tabs>
 </div>
-</body>
-</html>
 

@@ -4,6 +4,11 @@ margin: 1em 2em;
 }
 
 
+.admin {
+  float:right;
+  font-size: 90%;
+}
+
 .tinymc {
   display:inline-block;
   vertical-align: top;

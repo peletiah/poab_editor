@@ -3,6 +3,13 @@ from pyramid.view import view_config
 
 from sqlalchemy.exc import DBAPIError
 
+from pyramid.security import (
+    authenticated_userid,
+    forget,
+    remember
+)
+
+
 from poab_editor.models import (
     DBSession,
     Log,
@@ -22,7 +29,8 @@ import hashlib, json
 from poab_editor.helpers import (
     timetools,
     imagetools,
-    filetools
+    filetools,
+    gpxtools
     )
 
 from time import strftime
@@ -31,18 +39,37 @@ import json
 
 @view_config(route_name='overview', renderer='overview.mako')
 def overview(request):
-    logs = Log.get_logs()
+    owner = authenticated_userid(request)
+    author = Author.get_author(owner)
+    if not author:
+        loc = request.route_url('login')
+        return HTTPFound(location=loc)
+    if author.name == 'admin': #TODO
+        logs = Log.get_logs()
+    else:
+        logs = Log.get_logs_by_author(author.id)
     if not logs:
         url = request.route_url('editor')
         return HTTPFound(location=url)
     logs_json = json.dumps([i.reprJSON() for i in logs],cls=ComplexEncoder)
-    return {'logs': logs_json}
+    return {'logs': logs_json, 'author': author}
     
         
-@view_config(route_name='editor', renderer='editor.mako')
+@view_config(
+        route_name='editor',
+        permission='create', 
+        renderer='editor.mako'
+)
+@view_config(
+        route_name='editor:logid',
+        permission='edit', 
+        renderer='editor.mako'
+)
 def editor(request):
-    if request.query_string:
-        log_id = request.GET.get('logid')
+    owner = authenticated_userid(request)
+    author = Author.get_author(owner)
+    if request.matchdict:
+        log_id = request.matchdict['logid']
         log = Log.get_log_by_id(log_id)
         images_json = json.dumps([i.reprJSON() for i in log.image],cls=ComplexEncoder)
         tracks_json = json.dumps([i.reprJSON() for i in log.track],cls=ComplexEncoder)
@@ -56,7 +83,7 @@ def editor(request):
                         hash=None, author=None, published=None)])
         log_json = json.dumps(dict(id=None,topic=None, content=None, author=None, created=None, \
                         last_change=None, published=None))
-    return {'images': images_json, 'tracks' : tracks_json, 'log': log_json}
+    return {'images': images_json, 'tracks' : tracks_json, 'log': log_json, 'author': author}
 
 
 @view_config(route_name='delete_log')
@@ -67,19 +94,18 @@ def delete_log(request):
     print log.id
     DBSession.delete(log)
     DBSession.flush()
-    #TODO: Delete from log_image as well
     return Response(log.topic)
 
 
 
 @view_config(route_name='save_log')
 def save_log(request):
-    print request.json_body
+    owner = authenticated_userid(request)
+    author = Author.get_author(owner)
     log_json = request.json_body
     id = log_json['id']
     topic=log_json['topic']
     content=log_json['content']
-    author = 1 #TODO: Replace with proper credentials from request
     images = log_json['images']
     tracks = log_json['tracks']
     if id:
@@ -89,7 +115,7 @@ def save_log(request):
         log.last_change = timetools.now()
     else:
         #log_id is None, so this is a new post
-        log = Log(topic=topic, content=content, author=author, created=timetools.now())
+        log = Log(topic=topic, content=content, author=author.id, created=timetools.now())
     DBSession.add(log)
     DBSession.flush()
     print 'logid='+str(log.id)
@@ -111,15 +137,16 @@ def save_log(request):
 def update_image_metadata(request):
     print request.json_body
     for image_dict in request.json_body:
-        image=Image.get_image_by_id(image_dict['id'])
-        if image.title != image_dict['title'] or \
-        image.alt != image_dict['alt'] or \
-        image.comment != image_dict['comment']: #only update if there were changes            
-            image.title = image_dict['title']
-            image.alt = image_dict['alt']
-            image.comment = image_dict['comment']
-            image.last_change = timetools.now()
-            DBSession.add(image)
+        if image_dict['id']:
+            image=Image.get_image_by_id(image_dict['id'])
+            if image.title != image_dict['title'] or \
+            image.alt != image_dict['alt'] or \
+            image.comment != image_dict['comment']: #only update if there were changes            
+                image.title = image_dict['title']
+                image.alt = image_dict['alt']
+                image.comment = image_dict['comment']
+                image.last_change = timetools.now()
+                DBSession.add(image)
     return Response('ok')
  
 
@@ -131,8 +158,9 @@ def imageupload(request):
     print request.POST.get('upload')
     print request.POST.keys()
     print filelist
-
-    author = Author.get_author('Christian') #TODO
+    
+    owner = authenticated_userid(request)
+    author = Author.get_author(owner)
     images_in_db = Image.get_images()
     today=strftime("%Y-%m-%d")
     
@@ -172,8 +200,10 @@ def trackupload(request):
     print request.POST.get('upload')
     print request.POST.keys()
     print filelist
+ 
+    owner = authenticated_userid(request)
+    author = Author.get_author(owner)
 
-    author = Author.get_author('Christian') #TODO
     tracks_in_db = Track.get_tracks()
     today=strftime("%Y-%m-%d")
     
@@ -188,7 +218,9 @@ def trackupload(request):
         if not filetools.file_exists(tracks_in_db, filehash):
             if upload: #only save files when upload-checkbox has been ticked
                 filehash = filetools.safe_file_local(trackdir, file)
-            track = Track(name=file.filename, location=trackdir, hash=filehash, author=author.id, published=None)
+            trackdata_json = gpxtools.gpxprocess(trackdir+file.filename)
+            print trackdata_json
+            track = Track(name=file.filename, location=trackdir, geojson=trackdata_json, hash=filehash, author=author.id, published=None)
             DBSession.add(track)
             DBSession.flush()
             track_json = track.reprJSON()

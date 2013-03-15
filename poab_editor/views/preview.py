@@ -40,10 +40,10 @@ def preview(request):
             image = Image.get_image_by_id(id)
             if image:
                 if image.comment:
-                    preview=preview.replace(imgid,'''<div class="log_inlineimage"><div class="imagecontainer"><img class="inlineimage" src="static%spreview/%s" alt="%s"></div>
+                    preview=preview.replace(imgid,'''<div class="log_inlineimage"><div class="imagecontainer"><img class="inlineimage" src="/static%spreview/%s" alt="%s"></div>
                                                      <span class="imagedescription">%s</span></div>''' % (image.location, image.name, image.alt, image.comment))
                 else:
-                   preview = preview.replace(imgid,'''<div class="log_inlineimage"> <div class="imagecontainer"><img class="inlineimage" src="static%spreview/%s" alt="%s">
+                   preview = preview.replace(imgid,'''<div class="log_inlineimage"> <div class="imagecontainer"><img class="inlineimage" src="/static%spreview/%s" alt="%s">
                                                       </div></div>''' % (image.location, image.name, image.alt))
                     #preview = preview.replace(imgid,'<img src="static'+image.location+'preview/'+image.name+'">')
     return {'log': log, 'preview': preview}
