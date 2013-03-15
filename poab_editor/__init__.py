@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
-from poab_editor.security import groupfinder
+from poab_editor.security import role_filter
 
 from poab_editor.models import (
     RootFactory as RootFactory,
