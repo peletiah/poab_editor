@@ -4,7 +4,7 @@ from .models import (
     )
 
 
-def groupfinder(name, request):
+def role_filter(name, request):
     author = Author.get_author(name)
     if author and author.group:
         return ['g:%s' % g.name for g in author.group]

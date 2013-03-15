@@ -21,7 +21,8 @@ def main(global_config, **settings):
     DBSession.configure(bind=engine)
     authn_policy = AuthTktAuthenticationPolicy(
         secret=settings['auth_tut.secret'],
-        callback=groupfinder
+        callback=role_filter,
+        hashalg='sha512'
     )
     authz_policy = ACLAuthorizationPolicy()
     config = Configurator(
