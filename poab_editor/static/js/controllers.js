@@ -3,6 +3,7 @@
 var OverviewCtrl = function ($scope, $dialog, $http, $timeout){
   $scope.alerts=[];
 
+
   //delete specific log-entry, with confirmation-dialog
   $scope.confirmDelete = function(log){
     var title = log.topic;
@@ -47,6 +48,33 @@ var OverviewCtrl = function ($scope, $dialog, $http, $timeout){
   };
 
 
+  $scope.syncImg = function(image) {
+    $http({
+      url: '/sync',
+      data: image,
+      method: 'POST',
+      headers : {'Content-Type':'application/json; charset=UTF-8'}
+    }).success($scope.syncImgSuccess);
+  };
+
+  $scope.syncImgSuccess = function(data, status) {
+      console.log('Success')
+      if (status = '200') {
+        $scope.alerts.push({type: 'success', msg: 'Image "'+data+'" has been synced to server'});
+        $timeout(function() {$scope.closeAlert(0)}, 1000)
+      } else {
+      console.log('Error!'+status)
+      $scope.alerts.push({type: 'error', msg: 'Error while syncing Image: '+data+', Status Code: '+status});
+      };
+    };
+
+  $scope.syncToServer = function(log) {
+    $scope.active = true
+    for (i in log.images) {
+      console.log(log.images[i])
+      $scope.syncImg(log.images[i])
+    }
+  }
 
 }
 
@@ -140,8 +168,9 @@ var EditorCtrl = function ($scope, $http, $timeout) {
       var fd = new FormData()
       for (var i in $scope.files) {
           fd.append("uploadedFile", $scope.files[i])
-          fd.append("upload", $scope.upload)
       }
+      fd.append("upload", $scope.upload)
+      console.log(fd)
       var xhr = new XMLHttpRequest()
       xhr.upload.addEventListener("progress", uploadProgress, false)
       xhr.addEventListener("load", uploadComplete, false)

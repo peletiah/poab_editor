@@ -172,6 +172,9 @@ def imageupload(request):
     images=list()
 
     for file in filelist:
+        print '\n'
+        print file.filename
+        print '\n'
         filehash = hashlib.sha256(file.value).hexdigest()
 
         if not filetools.file_exists(images_in_db, filehash):
@@ -179,7 +182,7 @@ def imageupload(request):
                 filehash = filetools.safe_file_local(imgdir, file)
                 imagetools.resize(imgdir, imgdir+'preview/', file.filename, img_prvw_w)
                 imagetools.resize(imgdir, imgdir+'thumbs/', file.filename, img_thumb_w)
-            image = Image(name=file.filename, location=imgdir, title=None, comment=None, alt=None, hash=filehash, author=author.id, last_change=timetools.now(), published=None)
+            image = Image(name=file.filename, location=imgdir, title=None, comment=None, alt=None, hash=filehash, hash_990=None, author=author.id, last_change=timetools.now(), published=None)
             DBSession.add(image)
             DBSession.flush()
             image_json = image.reprJSON()

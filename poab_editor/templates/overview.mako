@@ -15,6 +15,9 @@
         <a href="#" title="Sync to server" ng-click="syncToServer(log)"><i class="icon-refresh"></i></a>
       </div>
       <div><small>created on {{log.created}} by {{log.author}}</small></div>
+      <ul ng-repeat="image in log.images" ng-show="active">
+        <li><img src="/static{{image.location}}thumbs/{{image.name}}"></li>
+      </ul>
       <hr>
     </div>
   </div>

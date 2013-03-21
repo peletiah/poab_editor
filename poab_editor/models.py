@@ -105,9 +105,13 @@ class Log(Base):
         else:
             published = self.published
         author = Author.get_author_by_id(self.author)
+        images = [i.reprJSON() for i in self.image]
+        tracks = [i.reprJSON() for i in self.track]
         return dict(id=self.id, topic=self.topic, content=self.content, author=author.name, \
                     created = self.created.strftime("%Y-%m-%d %H:%M:%S"), \
-                    last_change=self.last_change.strftime("%Y-%m-%d %H:%M:%S"), published=published)
+                    last_change=self.last_change.strftime("%Y-%m-%d %H:%M:%S"), published=published, \
+                    images=images, tracks=tracks)
+    
 
     @classmethod
     def get_logs(self):
@@ -137,6 +141,7 @@ class Image(Base):
     comment = Column(Text)
     alt = Column(Text)
     hash = Column(Text)
+    hash_990 = Column(Text) #hash of the image with 990px width
     author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
@@ -148,13 +153,14 @@ class Image(Base):
     
 
 
-    def __init__(self, name, location, title, comment, alt, hash, author, last_change=timetools.now(), published=None):
+    def __init__(self, name, location, title, comment, alt, hash, hash_990, author, last_change=timetools.now(), published=None):
         self.name = name
         self.location = location
         self.title = title
         self.alt = alt
         self.comment = comment
         self.hash = hash
+        self.hash_990 = hash_990
         self.author = author
         self.last_change = last_change
         self.published = published
@@ -165,7 +171,7 @@ class Image(Base):
         else:
             published = self.published
         return dict(id=self.id, name=self.name, location=self.location, title=self.title, 
-                    alt=self.alt, comment=self.comment, hash=self.hash, author=self.author,
+                    alt=self.alt, comment=self.comment, hash=self.hash, hash_990=self.hash_990, author=self.author,
                     last_change=self.last_change.strftime("%Y-%m-%d"), published=published)
 
     @classmethod
