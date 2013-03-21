@@ -65,7 +65,18 @@ margin: 1em 2em;
   opacity: 0.8;
 }
 
+.syncStatus {
+ margin: 2em 0 0 2em;
+}
 
-.paneContent
-{
+.loading {
+ background:url(/static/images/icons/load_indicator.gif) no-repeat;
+ display: inline-block;
+ vertical-align: text-top;
+ height:16px;
+ width:16px;
+}
+
+.opaque {
+  opacity: 0.3;
 }

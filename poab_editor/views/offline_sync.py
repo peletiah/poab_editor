@@ -41,11 +41,15 @@ import requests
 
 @view_config(route_name='sync')
 def sync(request):
-    image = Image.get_image_by_id(request.json_body['id'])
+    print request.json_body
+    print request.json_body['image']['id']
+    image = Image.get_image_by_id(request.json_body['image']['id'])
+    log = request.json_body['log']
     print image
     image_bin = open(image.location+image.name, 'rb')
     url = 'http://poab.org:6543/upload'
-    payload = {'metadata':json.dumps(image.reprJSON()), 'image_bin':image_bin}
+    payload = {'metadata':json.dumps(image.reprJSON()), 'image_bin':image_bin, 'log':json.dumps(log)}
+    headers = {'content-type':'application/json'}
     r = requests.post(url, files=payload)
     print r.text
     return Response(r.text)

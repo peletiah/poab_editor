@@ -48,31 +48,82 @@ var OverviewCtrl = function ($scope, $dialog, $http, $timeout){
   };
 
 
-  $scope.syncImg = function(image) {
+
+
+  $scope.syncImgSuccess = function(data, status) {
+      console.log('Success')
+      if (status = '200') {
+        $scope.imageSynced[data.image_id] = true;
+        $scope.isImageTransferring[data.image_id] = false;
+      } else {
+      console.log('Error!'+status)
+      $scope.alerts.push({type: 'error', msg: 'Error while syncing Image: '+data+', Status Code: '+status});
+      };
+      image_id = data.image_id
+      log_id = data.log_id
+      $scope.itemsSynced[image_id]=true
+      console.log('sync'+$scope.itemsSynced.every(allSynced))
+      if ($scope.itemsSynced.every(allSynced)) {
+        $timeout(function() {
+          $scope.syncInProgress[log_id]=false;
+          $scope.displayDetails[log_id]=false;
+        }, 4000)
+      };
+    };
+
+  function allSynced(element, index, array) {
+    return (element == true);
+  }
+
+
+  $scope.syncImg = function(image, log) {
+    data={}
+    data['image']=image;
+    data['log']=log;
+    $scope.isImageTransferring[image.id] = true;
+    $scope.imageSynced[image.id] = false;
     $http({
       url: '/sync',
-      data: image,
+      data: data,
       method: 'POST',
       headers : {'Content-Type':'application/json; charset=UTF-8'}
     }).success($scope.syncImgSuccess);
   };
 
-  $scope.syncImgSuccess = function(data, status) {
-      console.log('Success')
-      if (status = '200') {
-        $scope.alerts.push({type: 'success', msg: 'Image "'+data+'" has been synced to server'});
-        $timeout(function() {$scope.closeAlert(0)}, 1000)
-      } else {
-      console.log('Error!'+status)
-      $scope.alerts.push({type: 'error', msg: 'Error while syncing Image: '+data+', Status Code: '+status});
-      };
-    };
 
-  $scope.syncToServer = function(log) {
-    $scope.active = true
+
+$scope.displayDetails = [];
+$scope.syncInProgress = [];
+$scope.itemsSynced = [];
+$scope.imageSynced=[];
+$scope.isImageTransferring=[];
+$scope.allSynced = false;
+
+  $scope.toggleDetails = function(index){
+      if ($scope.displayDetails[index] == false) {
+        $scope.displayDetails[index] = true
+      } else {
+        $scope.displayDetails[index] = false;
+      }
+  };
+
+  $scope.DetailsHidden = function(index) {
+      return (($scope.displayDetails[index] == false) && ($scope.syncInProgress[index] == true));
+  }
+ 
+  $scope.syncToServer = function(log, index) {
+    //$scope.activeIndex = index; //was activated, show details
+    $scope.displayDetails[index] = true;
+    $scope.syncInProgress[index] = true;
     for (i in log.images) {
-      console.log(log.images[i])
-      $scope.syncImg(log.images[i])
+      //$timeout(function() {
+      //  $scope.syncInProgress[index]=false; 
+      //  $scope.displayDetails[index] = false;
+      //}, 3000)
+      $scope.itemsSynced[log.images[i].id] = false
+      console.log($scope.itemsSynced)
+      $scope.syncImg(log.images[i],log)
+      console.log($scope.itemsSynced.every(allSynced))
     }
   }
 
