@@ -17,7 +17,8 @@
     <script type="text/javascript" src="/static/lib/tinymce/3.5.8/jquery.tinymce.js"></script>
     <script type="text/javascript" src="/static/lib/colorbox/jquery.colorbox.js"></script>
     <script src="/static/js/directives.js"></script>
-    <script src="/static/js/controllers.js"></script>
+    <script src="/static/js/overview.js"></script>
+    <script src="/static/js/editor.js"></script>
   </head>
   <body>
     ${ next.body() }
