@@ -2,6 +2,7 @@
 
 *.swp
 
+*.ini
 
 *.log
 *.db
