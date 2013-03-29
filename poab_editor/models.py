@@ -80,6 +80,7 @@ class Log(Base):
     created = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
+    uuid = Column(Text)
     image = relation('Image', secondary=log_image_table, backref='imageref')
     track = relation('Track', secondary=log_track_table, backref='trackref')
 
@@ -90,7 +91,7 @@ class Log(Base):
         ]
 
     
-    def __init__(self, topic, content, author, created=timetools.now(), \
+    def __init__(self, topic, content, author, uuid, created=timetools.now(), \
                 last_change=timetools.now(), published=None):
         self.topic = topic
         self.content = content
@@ -98,6 +99,7 @@ class Log(Base):
         self.created = created
         self.last_change = last_change
         self.published = published
+        self.uuid = uuid
     
     def reprJSON(self):
         if self.published:
@@ -110,7 +112,7 @@ class Log(Base):
         return dict(id=self.id, topic=self.topic, content=self.content, author=author.name, \
                     created = self.created.strftime("%Y-%m-%d %H:%M:%S"), \
                     last_change=self.last_change.strftime("%Y-%m-%d %H:%M:%S"), published=published, \
-                    images=images, tracks=tracks)
+                    images=images, tracks=tracks, uuid=self.uuid)
     
 
     @classmethod
@@ -141,10 +143,11 @@ class Image(Base):
     comment = Column(Text)
     alt = Column(Text)
     hash = Column(Text)
-    hash_990 = Column(Text) #hash of the image with 990px width
+    hash_large = Column(Text) #hash of the image with 990px width
     author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
+    uuid = Column(Text)
     log = relation('Log', secondary=log_image_table, backref='imagelogref')
     __table_args__ = (
         UniqueConstraint('location', 'name', name='image_location_name'),
@@ -153,26 +156,28 @@ class Image(Base):
     
 
 
-    def __init__(self, name, location, title, comment, alt, hash, hash_990, author, last_change=timetools.now(), published=None):
+    def __init__(self, name, location, title, comment, alt, hash, hash_large, author, uuid, last_change=timetools.now(), published=None):
         self.name = name
         self.location = location
         self.title = title
         self.alt = alt
         self.comment = comment
         self.hash = hash
-        self.hash_990 = hash_990
+        self.hash_large = hash_large
         self.author = author
         self.last_change = last_change
         self.published = published
+        self.uuid = uuid
 
     def reprJSON(self):
         if self.published:
             published = self.published.strftime("%Y-%m-%d")
         else:
             published = self.published
+        author = Author.get_author_by_id(self.author)
         return dict(id=self.id, name=self.name, location=self.location, title=self.title, 
-                    alt=self.alt, comment=self.comment, hash=self.hash, hash_990=self.hash_990, author=self.author,
-                    last_change=self.last_change.strftime("%Y-%m-%d"), published=published)
+                    alt=self.alt, comment=self.comment, hash=self.hash, hash_large=self.hash_large, author=author.name,
+                    last_change=self.last_change.strftime("%Y-%m-%d"), published=published, uuid=self.uuid)
 
     @classmethod
     def get_images(self):
@@ -185,7 +190,7 @@ class Image(Base):
             image = DBSession.query(Image).filter(Image.id == id).one()
             return image
         except Exception, e:
-            print "Error retrieving extension %s: ",e
+            print "Error retrieving image %s: ",e
             return None
 
     @classmethod
@@ -203,6 +208,7 @@ class Track(Base):
     hash = Column(Text)
     author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
     published = Column(types.TIMESTAMP(timezone=False))
+    uuid = Column(Text)
     log = relation('Log', secondary=log_track_table, backref='tracklogref')
     __table_args__ = (
         UniqueConstraint('location', 'name', name='track_location_name'),
@@ -211,13 +217,14 @@ class Track(Base):
     
 
 
-    def __init__(self, name, location, geojson, hash, author, published=None):
+    def __init__(self, name, location, geojson, hash, author, uuid, published=None):
         self.name = name
         self.location = location
         self.geojson = geojson
         self.hash = hash
         self.author = author
         self.published = published
+        self.uuid = uuid
 
     def reprJSON(self):
         if self.published:
@@ -225,7 +232,7 @@ class Track(Base):
         else:
             published = self.published
         return dict(id=self.id, name=self.name, location=self.location, geojson=self.geojson,
-                    hash=self.hash, author=self.author, published=published)
+                    hash=self.hash, author=self.author, published=published, uuid=uuid)
 
     @classmethod
     def get_tracks(self):
@@ -248,6 +255,7 @@ class Author(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, unique=True)
     password = Column(Unicode(80), nullable=False)
+    uuid = Column(Text)
     group = relation('Group', secondary=author_group_table, backref='memberships')
 
     @property
@@ -256,9 +264,13 @@ class Author(Base):
             (Allow, self.name, 'edit'),
         ]
 
-    def __init__(self, name, password):
+    def __init__(self, name, password, uuid):
         self.name = name
         self._make_hash(password)
+        self.uuid = uuid
+
+    def reprJSON(self):
+        return dict(id=self.id, name=self.name, uuid=uuid)
 
     def _make_hash(self, password):
         """Generate a random salt and return a new hash for the password."""
@@ -316,6 +328,7 @@ class Author(Base):
             author = DBSession.query(Author).filter(Author.name == name).one()
             return author
         except Exception, e:
+            print "Error retrieving author %s: ",e
             return None
 
     @classmethod

@@ -49,7 +49,8 @@ class SQLAlchemyShell(InteractiveConsole):
         readline.write_history_file(histfile)
 
 
-engine=engine_from_config({'sqlalchemy.url':'postgresql://<username>:<password>@localhost/<database>'}, 'sqlalchemy.')
+#engine=engine_from_config({'sqlalchemy.url':'postgresql://<username>:<password>@localhost/<database>'}, 'sqlalchemy.')
+engine=engine_from_config({'sqlalchemy.url':'sqlite:///home/peletiah/env/poab_editor/poab_editor.db'}, 'sqlalchemy.')
 DBSession.configure(bind=engine)
 ic = SQLAlchemyShell()
 cmd = "from poab_editor.models import *"

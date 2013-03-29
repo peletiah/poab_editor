@@ -34,7 +34,7 @@ from poab_editor.helpers import (
     )
 
 from time import strftime
-import json
+import json,uuid
 
 
 @view_config(route_name='overview', renderer='overview.mako')
@@ -115,7 +115,7 @@ def save_log(request):
         log.last_change = timetools.now()
     else:
         #log_id is None, so this is a new post
-        log = Log(topic=topic, content=content, author=author.id, created=timetools.now())
+        log = Log(topic=topic, content=content, author=author.id, created=timetools.now(), uuid=str(uuid.uuid4()))
     DBSession.add(log)
     DBSession.flush()
     print 'logid='+str(log.id)
@@ -165,7 +165,8 @@ def imageupload(request):
     today=strftime("%Y-%m-%d")
     
     basedir = '/srv/trackdata/bydate'
-    img_prvw_w='500' #width of images in editor-preview
+    img_large_w='990' #width of images in editor-preview
+    img_medium_w='500' #width of images in editor-preview
     img_thumb_w='150' #width of images in editor-preview
     filedir = filetools.createdir(basedir, author.name, today)
     imgdir = filedir+'images/sorted/'
@@ -177,12 +178,15 @@ def imageupload(request):
         print '\n'
         filehash = hashlib.sha256(file.value).hexdigest()
 
-        if not filetools.file_exists(images_in_db, filehash):
+        if not filetools.file_exists(images_in_db, filehash): #TODO: Uhm, wouldn't a simple db-query for the hash work too???
             if upload: #only save files when upload-checkbox has been ticked
                 filehash = filetools.safe_file_local(imgdir, file)
-                imagetools.resize(imgdir, imgdir+'preview/', file.filename, img_prvw_w)
-                imagetools.resize(imgdir, imgdir+'thumbs/', file.filename, img_thumb_w)
-            image = Image(name=file.filename, location=imgdir, title=None, comment=None, alt=None, hash=filehash, hash_990=None, author=author.id, last_change=timetools.now(), published=None)
+                imagetools.resize(imgdir, imgdir+img_large_w+'/', file.filename, img_large_w)
+                imagetools.resize(imgdir, imgdir+img_medium_w+'/', file.filename, img_medium_w)
+                imagetools.resize(imgdir, imgdir+img_thumb_w+'/', file.filename, img_thumb_w)
+            image = Image(name=file.filename, location=imgdir, title=None, comment=None, alt=None, \
+                        hash=filehash, hash_large=None, author=author.id, last_change=timetools.now(), \
+                        published=None, uuid=str(uuid.uuid4()))
             DBSession.add(image)
             DBSession.flush()
             image_json = image.reprJSON()

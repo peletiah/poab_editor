@@ -4,11 +4,6 @@
 
 
 *.ini
-*.ini
-
-development.ini
-production.ini
-
 
 *.log
 *.db

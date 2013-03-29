@@ -34,17 +34,18 @@ def preview(request):
         log = Log.get_log_by_id(log_id)
         imgid_list = re.findall("(\[imgid\d{1,}\])", log.content)
         preview = log.content
+        img_large_w='500'
         for imgid in imgid_list:
             print imgid
             id = re.search("^\[imgid(\d{1,})\]$",imgid).group(1) #gets the id in [imgid123]
             image = Image.get_image_by_id(id)
             if image:
                 if image.comment:
-                    preview=preview.replace(imgid,'''<div class="log_inlineimage"><div class="imagecontainer"><img class="inlineimage" src="/static%spreview/%s" alt="%s"></div>
-                                                     <span class="imagedescription">%s</span></div>''' % (image.location, image.name, image.alt, image.comment))
+                    preview=preview.replace(imgid,'''<div class="log_inlineimage"><div class="imagecontainer"><img class="inlineimage" src="/static%s%s/%s" alt="%s"></div>
+                                                     <span class="imagedescription">%s</span></div>''' % (image.location, img_large_w, image.name, image.alt, image.comment))
                 else:
-                   preview = preview.replace(imgid,'''<div class="log_inlineimage"> <div class="imagecontainer"><img class="inlineimage" src="/static%spreview/%s" alt="%s">
-                                                      </div></div>''' % (image.location, image.name, image.alt))
+                   preview = preview.replace(imgid,'''<div class="log_inlineimage"> <div class="imagecontainer"><img class="inlineimage" src="/static%s%s/%s" alt="%s">
+                                                      </div></div>''' % (image.location, img_large_w, image.name, image.alt))
                     #preview = preview.replace(imgid,'<img src="static'+image.location+'preview/'+image.name+'">')
     return {'log': log, 'preview': preview}
     

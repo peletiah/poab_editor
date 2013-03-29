@@ -22,15 +22,15 @@ def createdir(abspath, relpath1, relpath2):
     else:
         os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/990')
 
-    if os.access(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/preview',os.F_OK):
+    if os.access(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/500',os.F_OK):
         pass
     else:
-        os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/preview')
+        os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/500')
 
-    if os.access(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/thumbs',os.F_OK):
+    if os.access(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/thumb',os.F_OK):
         pass
     else:
-        os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/thumbs')
+        os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/thumb')
 
 
     if os.access(abspath+'/'+relpath1+'/'+relpath2+'/trackfile',os.F_OK):

@@ -1,0 +1,86 @@
+body 
+{ 
+margin: 1em 2em; 
+}
+
+
+.admin {
+  float:right;
+  font-size: 90%;
+}
+
+.tinymc {
+  display:inline-block;
+  vertical-align: top;
+  margin: 0 2em 2em 0;
+  float: left;
+}
+
+.header {
+  margin: 0 0 2em 0;
+}
+
+
+#preview {
+  margin: 0.5em 0 0.5em 0;
+}
+
+
+.metadata {
+  display: inline-block;
+}
+
+.metadata img {
+  margin: 0 0 1em 0;
+}
+
+.overflow {
+    height: 500px;
+    width: 330px;
+    padding: 0 2em;
+    float: left;
+    display: inline-block;
+    overflow: auto
+}
+
+.overflowContent {
+  float: left;
+  height: auto;
+  width: 150px;
+  margin: 3px 3px;
+  padding: 0;
+  position: relative;
+
+}
+
+.imgid {
+  font-size: 0.7em;
+  font-weight: bold;
+  color: white;
+  position: absolute;
+  left:0; bottom:0;
+  padding:  0 0 0 0.4em;
+  overflow: hidden;
+  display: block;
+  opacity: 0.8;
+}
+
+.syncStatus {
+ margin: 2em 0 0 2em;
+}
+
+.toolbar {
+  margin: 0 0.75em 0 0;
+}
+
+.loading {
+ background:url(/static/images/icons/load_indicator.gif) no-repeat;
+ display: inline-block;
+ vertical-align: text-top;
+ height:16px;
+ width:16px;
+}
+
+.opaque {
+  opacity: 0.3;
+}

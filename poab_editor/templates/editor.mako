@@ -24,7 +24,7 @@
         <div ng-repeat="image in images">
           <div class="overflowContent" ng-show="image.id"> <!-- only display this section if the image.id is not null -->
             <a ng-click="insertImageTag(image.id)" href="#">
-              <img src="/static{{image.location}}thumbs/{{image.name}}">
+              <img src="/static{{image.location}}150/{{image.name}}">
             </a>
             <span class="imgid">{{image.id}}</span>
           </div>
@@ -62,7 +62,7 @@
      <hr>
      <div ng-repeat="image in images | filter:query">
         <div ng-show="image.id"> <!-- only display this section if the image.id is not null -->
-          <img src="/static{{image.location}}preview/{{image.name}}">
+          <img src="/static{{image.location}}500/{{image.name}}">
           <div class="metadata">
               <div class="control-group">
                 <label class="control-label" for="inputTitle">image title</label>

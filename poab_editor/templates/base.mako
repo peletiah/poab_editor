@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>poab editor</title>
     <link rel="stylesheet" href="/static/css/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/colorbox.css">
     <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui.css">
     <script type="text/javascript" src="/static/lib/jquery/1.9.0/jquery.min.js"></script>
