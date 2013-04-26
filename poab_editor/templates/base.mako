@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/colorbox.css">
     <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui.css">
+    <link rel="stylesheet" href="/static/css/datepicker.css">
     <script type="text/javascript" src="/static/lib/jquery/1.9.0/jquery.min.js"></script>
     <script type="text/javascript" src="/static/lib/jqueryui/1.10.0/jquery-ui.min.js"></script>
     <script type="text/javascript" src="/static/lib/angularjs/1.0.4/angular.js"></script>
@@ -16,6 +17,7 @@
     <script type="text/javascript" src="/static/lib/tinymce/3.5.8/tiny_mce_src.js"></script>
     <script type="text/javascript" src="/static/lib/tinymce/3.5.8/jquery.tinymce.js"></script>
     <script type="text/javascript" src="/static/lib/colorbox/jquery.colorbox.js"></script>
+    <script type="text/javascript" src="/static/lib/datepicker/bootstrap-datepicker.js"></script>
     <script src="/static/js/directives.js"></script>
     <script src="/static/js/overview.js"></script>
     <script src="/static/js/editor.js"></script>

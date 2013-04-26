@@ -19,6 +19,7 @@ var EditorCtrl = function ($scope, $http, $timeout) {
   $scope.saveLog = function() {
     $scope.log.images = $scope.images
     $scope.log.tracks = $scope.tracks
+    $scope.log.etappe = $scope.etappe
     console.log($scope.log)
     log_json = JSON.stringify($scope.log, null, 0)
     console.log(log_json)
@@ -32,7 +33,11 @@ var EditorCtrl = function ($scope, $http, $timeout) {
 
   $scope.saveLogSuccess = function (data, status) {
     if (status = '200') {
-      $scope.log.id = data;
+      console.log(data['log_id'])
+      console.log(data['etappe_id'])
+      console.log($scope.etappe)
+      $scope.log.id = data['log_id'];
+      $scope.etappe.id = data['etappe_id'];
       $scope.alerts.push({type: 'success', msg: 'Log successfully saved!'});
       $timeout(function() {$scope.closeAlert(0)}, 3000)
     } else {
@@ -113,7 +118,7 @@ var EditorCtrl = function ($scope, $http, $timeout) {
   }
 
   function uploadComplete(evt) {
-      /* This event is raised when the server send back a response */
+      /* This event is raised when the server sent back a response */
       $scope.$apply( function(){
         files_json = JSON.parse(evt.target.responseText)
         console.log(files_json)
@@ -126,21 +131,21 @@ var EditorCtrl = function ($scope, $http, $timeout) {
         //adding files to $scope, if they are not in $scope yet
         console.log('Server response was json with '+filetype+', trying to add them to scope')
         for (var i = 0; i < files_json[filetype].length; i++) {
-          var hashmatch = false;
-          for ( var j = 0; j < $scope.tracks.length; j++) {
-            if ( files_json[filetype][i].hash == $scope.tracks[j].hash ) {
-              hashmatch = true;
-              console.log('hashmatch found, already in $scope');
+          var uuidmatch = false;
+          for ( var j = 0; j < $scope[filetype].length; j++) {
+            if ( files_json[filetype][i].uuid == $scope[filetype][j].uuid ) {
+              uuidmatch = true;
+              console.log('uuidmatch found, object already in $scope');
             };
           };
-          if ( hashmatch == false) {
-            console.log('this file is not in $scope yet, we will add it');
-            console.log(files_json[filetype][i].hash)
+          if ( uuidmatch == false) {
+            console.log('this object is not in $scope yet, we will add it');
+            console.log(files_json[filetype][i].uuid)
             if ( filetype == 'tracks' ) { 
               $scope.tracks.push(files_json[filetype][i])
             } else if ( filetype == 'images' ) {
               $scope.images.push(files_json[filetype][i])
-            } 
+            }
           }
         }
         $scope.progressVisible = false

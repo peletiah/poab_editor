@@ -3,35 +3,42 @@
 
 <%include file='header.mako' />
 
-<div ng-init="images=${images}; log=${log}; tracks=${tracks}" ng-controller="EditorCtrl">
+<div ng-init="images=${images}; etappe=${etappe}; log=${log}; tracks=${tracks}" ng-controller="EditorCtrl">
 <tabs>
 
 
 
-   <pane class="paneContent" heading="Editor" active="pane.active">
-      <div>
-        <input type="text" ng-model="log.topic" placeholder="Topic">
-      </div>
-      <div class="tinymc">
-        <textarea ui-tinymce ng-model="log.content"></textarea>
-       <div>
-      <button class="btn btn-small btn-primary" id="preview" colorbox transition="fade", speed=350, href="/preview?logid={{log.id}}">preview</button>
-      <button class="btn btn-small btn-primary" id="save" ng-click="saveLog()">save</button>
-      <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
-      </div>
-      </div>
-      <div class="overflow">
-        <div ng-repeat="image in images">
-          <div class="overflowContent" ng-show="image.id"> <!-- only display this section if the image.id is not null -->
-            <a ng-click="insertImageTag(image.id)" href="#">
-              <img src="/static{{image.location}}150/{{image.name}}">
-            </a>
-            <span class="imgid">{{image.id}}</span>
-          </div>
+  <pane class="paneContent" heading="Editor" active="pane.active">
+    <h4>Etappe</h4>
+    <input type="text" ng-model="etappe.name" placeholder="Etappe name" value="{{etappe.name}}"/>
+    <div>
+      <input type="text" ng-model="etappe.start_date" name="mDate" placeholder="Etappe start date" value="{{etappe.start_date}}" date-picker/>
+      <input type="text" ng-model="etappe.end_date" name="mDate" placeholder="Etappe end date" value="{{etappe.end_date}}" date-picker/>
+    </div>
+    <hr>
+    <h4>Log</h4>
+    <div>
+      <input type="text" ng-model="log.topic" placeholder="Topic">
+    </div>
+    <div class="tinymc">
+      <textarea ui-tinymce ng-model="log.content"></textarea>
+     <div>
+    <button class="btn btn-small btn-primary" id="preview" colorbox transition="fade", speed=350, href="/preview?logid={{log.id}}">preview</button>
+    <button class="btn btn-small btn-primary" id="save" ng-click="saveLog()">save</button>
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+    </div>
+    </div>
+    <div class="overflow">
+      <div ng-repeat="image in images">
+        <div class="overflowContent" ng-show="image.id"> <!-- only display this section if the image.id is not null -->
+          <a ng-click="insertImageTag(image.id)" href="#">
+            <img src="/static{{image.location}}150/{{image.name}}">
+          </a>
+          <span class="imgid">{{image.id}}</span>
         </div>
       </div>
-     <hr>
-   </pane>
+    </div>
+  </pane>
 
   <pane class="paneContent" heading="Images" active="pane.active">
     <div>
@@ -116,7 +123,7 @@
     <hr>
     <ul ng-repeat="track in tracks | filter:query">
       <div ng-show="track.id"> <!-- only display this section if the image.id is not null -->
-        <li>{{track.location}}{{track.name}}</li>
+        <li>distance: <b>{{track.distance}}km</b>, timespan: <b>{{track.timespan}}</b>, trackpoints: <b>{{track.trackpoint_count}}</b> started: <b>{{track.start_time}}</b> ended: <b>{{track.end_time}}</b> </li>
       </div>
     </ul>
 

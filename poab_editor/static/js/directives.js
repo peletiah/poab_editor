@@ -70,6 +70,29 @@ EditorModule.directive('colorbox', function($http, $compile, $parse) {
   return colorboxDefinition;  
 })
 
+EditorModule.directive('datePicker', function ($parse) {
+    return function (scope, element, attrs, controller) {
+        var ngModel = $parse(attrs.ngModel);
+        $(function(){
+            element.datepicker({
+                format: 'yyyy-mm-dd',
+                weekStart: 1})
+                .on('changeDate', function (ev) {
+                    var dd = ev.date.getDate()
+                    var mm = ev.date.getMonth()+1;//January is 0! 
+                    var yyyy = ev.date.getFullYear(); 
+                    if(dd<10){dd='0'+dd} 
+                    if(mm<10){mm='0'+mm}
+                    console.log(yyyy+'-'+mm+'-'+dd)
+                    scope.$apply(function(scope){
+                        // Change binded variable
+                        ngModel.assign(scope, yyyy+'-'+mm+'-'+dd);
+                    });
+                })
+        })
+    }
+});
+
 
 // TinyMCE Parameters
 EditorModule.value('ui.config', {

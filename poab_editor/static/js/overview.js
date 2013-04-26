@@ -59,11 +59,14 @@ $scope.isItemSynced = [];
 
 
   $scope.syncToServer = function(log) {
+    //unhide details-display while syncing
     $scope.displayDetails[log.id] = true;
+    //hide sync-button while syncing
     $scope.syncInProgress[log.id] = true;
-    $scope.isItemSynced[log.id]=[]
-    //set Sync-State for all items to False
-    $scope.syncItem('', log, 'log')
+    $scope.isItemSynced[log.id]=[] //initialize isItemSynced-array
+    $scope.syncItem('', log, 'log') //sync log
+
+    //set Sync-State for all items to sync_in_progress
     $scope.itemSyncState(log.uuid, log.id, 'sync_in_progress')
     for (i in log.images) {
       $scope.itemSyncState(log.images[i].uuid, log.id, 'sync_in_progress')
@@ -110,7 +113,9 @@ $scope.isItemSynced = [];
         console.log('Error!'+status)
         $scope.alerts.push({type: 'error', msg: 'Error while syncing Image: '+data+', Status Code: '+status});
       };
-      if (allItemsSynced($scope.isItemSynced[log_id])) { //test if all items in array are true with function allItemsSynced
+      //console.log('allTimesSynced: '+allItemsSynced($scope.isItemSynced[log_id]));
+      //test if all items in object are synced - if true, hide log-details after 4 sec
+      if (allItemsSynced($scope.isItemSynced[log_id])) {
         $timeout(
         function() {
           $scope.syncInProgress[log_id]=false;
@@ -120,15 +125,19 @@ $scope.isItemSynced = [];
   };
 
   function allItemsSynced(items_sync_state) {
-    all_synced=true
+    all_sync_states=[]
+
     for (each in items_sync_state) {
-      if ((items_sync_state[each] == 'was_synced') || (items_sync_state[each] == 'is_synced')) {
-        all_synced=true
-      } else {
-        all_synced=false
-      }
+      all_sync_states.push(items_sync_state[each]) //we need an array of sync_states for the allTrue-function
     }
+    console.log(all_sync_states)
+    all_synced=all_sync_states.every(allTrue) //test if all items are in sync
+    console.log(all_synced)
     return all_synced
+  }
+
+  function allTrue(element, index, array) {
+    return ((element == 'was_synced') || (element == 'is_synced'))
   }
 
   $scope.itemSyncState = function(item_uuid, log_id, state) {

@@ -6,7 +6,6 @@
 
   <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
   <div ng-repeat="log in logs">
-    {{log.id}}
     <div ng-show="log.id">
       <div>
         <a class="toolbar" href="/editor/{{log.id}}" title="Edit">{{log.topic}}</a>
@@ -36,8 +35,6 @@
       <div>
         <small>created on {{log.created}} by {{log.author}}</small>
       </div>
-      {{displayDetails[log.id]}}
-      {{syncInProgress[log.id]}}
       <ul ng-show="displayDetails[log.id]">
         <li>
           {{isItemSynced[log.id][log.uuid]}}
