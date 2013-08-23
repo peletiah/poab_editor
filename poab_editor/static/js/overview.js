@@ -17,12 +17,12 @@ var OverviewCtrl = function ($scope, $dialog, $http, $timeout){
         //has the user confirmed the dialog-box
         if (result == 'ok') {
           //delete log-entry from Database(via Backend-Server)
-          $http({
-            url: '/delete_log',
-            data: log_json,
-            method: 'POST',
-            headers : {'Content-Type':'application/json; charset=UTF-8'}
-          }).success($scope.deleteLogSuccess);
+          //$http({
+          //  url: '/delete_log',
+          //  data: log_json,
+          //  method: 'POST',
+          //  headers : {'Content-Type':'application/json; charset=UTF-8'}
+          //}).success($scope.deleteLogSuccess);
           //immediately delete log-entry from view($scope.logs-array)
           for (i in $scope.logs) {
             if ($scope.logs[i] == log) {
@@ -193,6 +193,7 @@ $scope.syncedItems = [];
   };
 
   $scope.DetailsHidden = function(log) {
+      //TODO: Throws error when deleting log!
       return (($scope.displayDetails[log.id] == false) && ($scope.syncInProgress[log.id] == true));
   }
   

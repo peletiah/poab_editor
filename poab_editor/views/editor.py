@@ -173,16 +173,21 @@ def save_log(request):
 def update_image_metadata(request):
     print request.json_body
     for image_dict in request.json_body:
-        if image_dict['id']:
-            image=Image.get_image_by_id(image_dict['id'])
-            if image.title != image_dict['title'] or \
-            image.alt != image_dict['alt'] or \
-            image.comment != image_dict['comment']: #only update if there were changes            
-                image.title = image_dict['title']
-                image.alt = image_dict['alt']
-                image.comment = image_dict['comment']
-                image.last_change = timetools.now()
-                DBSession.add(image)
+        try:
+            if image_dict['id']:
+                image=Image.get_image_by_id(image_dict['id'])
+                if image.title != image_dict['title'] or \
+                image.alt != image_dict['alt'] or \
+                image.comment != image_dict['comment']: #only update if there were changes            
+                    image.title = image_dict['title']
+                    image.alt = image_dict['alt']
+                    image.comment = image_dict['comment']
+                    image.last_change = timetools.now()
+                    DBSession.add(image)
+        except Exception, e:
+            print e
+            print 'ERROR on updating metadata'
+            
     return Response('ok')
  
 
