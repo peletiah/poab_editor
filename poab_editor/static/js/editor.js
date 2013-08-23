@@ -10,6 +10,12 @@ var EditorCtrl = function ($scope, $http, $timeout) {
   };
 
 
+    
+    $scope.list = [1,2,3];
+    
+    $scope.current = 0;
+    
+
   $scope.alerts = [];
 
 

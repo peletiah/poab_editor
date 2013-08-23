@@ -4,7 +4,7 @@ from xml.etree import ElementTree
 from datetime import timedelta
 import time,datetime
 
-import json,re
+import json,re,uuid
 
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -67,6 +67,7 @@ def geojson_from_gpx(gpxfile):
 
 def parse_track_description(track_desc):
     #regex match of track description, save values in re-groups
+    print track_desc
     metrics=re.compile(r'Total Track Points: (?P<pt_count>\d+). Total time: (?P<h>\d+)h(?P<m>\d+)m(?P<s>\d+)s. Journey: (?P<distance>\d+.\d+)Km').match(track_desc)
     pt_count = int(metrics.group("pt_count")) #number of trackpoints in this track
     hours = int(metrics.group("h"))
@@ -95,7 +96,7 @@ def parse_trackpoint_xml(trackpoint_xml, gpx_ns, ext_ns):
     if desc_re:
         speed=desc_re.group("speed")
         course=desc_re.group("course")
-    trackpoint = Trackpoint(track_id=None, latitude=latitude, longitude=longitude, altitude=elevation, velocity=speed, temperature=temperature, direction=course, pressure=pressure, timestamp=time) 
+    trackpoint = Trackpoint(track_id=None, latitude=latitude, longitude=longitude, altitude=elevation, velocity=speed, temperature=temperature, direction=course, pressure=pressure, timestamp=time, uuid=str(uuid.uuid4())) 
     return trackpoint
 
 
@@ -123,11 +124,14 @@ def parse_gpx(gpxfile):
 
         track_desc = track_xml.find('{%s}desc'% gpx_ns).text
         trackpoint_count, timespan, distance = parse_track_description(track_desc)
-        reduced_trkpts=reduce_trackpoints(trackpoints, dp_factor) #reduces the trackpoints with Douglas Peucker Algorithm
-        track = Track(reduced_trackpoints=json.dumps(reduced_trkpts), timespan=timespan, distance=distance, trackpoint_count=trackpoint_count, 
-                    start_time=None, end_time=None, color=None, author=None, published=None, uuid=None)
+        print len(trackpoints)
+        print distance
+        if not distance == '0.000': #TODO DP-calc hangs when there was no movement in the track
+            reduced_trkpts=reduce_trackpoints(trackpoints, dp_factor) #reduces the trackpoints with Douglas Peucker Algorithm
+            track = Track(reduced_trackpoints=json.dumps(reduced_trkpts), timespan=timespan, distance=distance, trackpoint_count=trackpoint_count, 
+                        start_time=None, end_time=None, color=None, author=None, published=None, uuid=None)
 
-        parsed_tracks.append({'track':track,'trackpoints':trackpoints})
+            parsed_tracks.append({'track':track,'trackpoints':trackpoints})
 
     return parsed_tracks
 
@@ -136,12 +140,13 @@ def parse_gpx(gpxfile):
 
 def sync_image_trackpoint(image):
     print image.timestamp_original
+    camera_offset = timedelta(seconds=0)
     tight_offset = timedelta(seconds=300) # match pic within 600 seconds (10min)
     max_offset = timedelta(seconds=43200) # match pic within 43200 seconds (12h)
     curr_offset =43200 # maximum timestamp-delta of closest trackpoint in seconds
     for offset in (tight_offset, max_offset):
-        start_timestamp = image.timestamp_original-offset
-        end_timestamp = image.timestamp_original+offset
+        start_timestamp = image.timestamp_original-camera_offset-offset
+        end_timestamp = image.timestamp_original-camera_offset+offset
         trackpoints = Trackpoint.get_trackpoints_by_timerange(start_timestamp, end_timestamp)
         if trackpoints:
             break

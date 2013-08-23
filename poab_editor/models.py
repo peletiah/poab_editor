@@ -12,6 +12,9 @@ from sqlalchemy import (
 
 from sqlalchemy.ext.declarative import declarative_base
 
+from sqlalchemy.dialects import postgresql
+
+
 from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
@@ -81,7 +84,7 @@ class Etappe(Base):
     id = Column(Integer, primary_key=True)
     start_date = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     end_date = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
-    uuid = Column(Text)
+    uuid = Column(Text, unique=True)
     name = Column(Text)
     log = relationship('Log', backref='etappe_ref')
     #track = relationship('Track', backref='etappe')
@@ -105,8 +108,57 @@ class Etappe(Base):
 
     @classmethod
     def get_etappen(self):
-        etappen = DBSession.query(Etappe).all()
+        etappen = DBSession.query(etappe).all()
         return etappen
+
+    @classmethod
+    def get_etappe_dropdown_list(self, limit):
+        #returns a Etappe-Object with additional attribute "date_str"
+        #date_str is a prettified merge of "start_date" and "end_date"
+        etappen = DBSession.query(Etappe).limit(limit).all()
+        etappe_dropdown_list=list()
+        for etappe in etappen:
+            day_str = month_str = year_str = date_str = None
+            if etappe.start_date.year == etappe.end_date.year:
+                year_str = etappe.start_date.year
+
+            if etappe.start_date.month == etappe.end_date.month:
+                month_str = etappe.start_date.strftime('%B')
+
+            if etappe.start_date.day == etappe.end_date.day:
+                day_str = etappe.start_date.day
+
+            date_str = etappe.start_date.strftime('%d. %B %Y - ')+etappe.end_date.strftime('%d. %B %Y')
+
+            if year_str: #only years are the same
+                date_str = etappe.start_date.strftime('%d. %B - ')+etappe.end_date.strftime('%d. %B %Y')
+
+            if month_str and year_str: #year and month are the same
+                date_str = etappe.start_date.strftime('%d. - ')+etappe.end_date.strftime('%d. %B %Y')
+            
+            if day_str and month_str and year_str: #day, month and year are the same
+                date_str = etappe.start_date.strftime('%d. %B %Y')
+
+            class EtappeDropdown(object):
+                def __init__(self, id, start_date, end_date, date_str, name, uuid):
+                    self.id = id
+                    self.start_date = start_date
+                    self.end_date = end_date
+                    self.date_str = date_str
+                    self.name = name
+                    self.uuid = uuid 
+            
+                def reprJSON(self):
+                    start_date = self.start_date.strftime("%Y-%m-%d")
+                    end_date = self.end_date.strftime("%Y-%m-%d")
+                    return dict(id=self.id, start_date=start_date, end_date=end_date, date_str=self.date_str, name=self.name, uuid=self.uuid)
+    
+            etappe_dropdown = EtappeDropdown(etappe.id, etappe.start_date, etappe.end_date, date_str, etappe.name, etappe.uuid)
+
+            etappe_dropdown_list.append(etappe_dropdown)
+        return etappe_dropdown_list
+
+
 
     @classmethod
     def get_etappe_by_id(self, id):
@@ -130,7 +182,7 @@ class Log(Base):
     created = Column(types.TIMESTAMP(timezone=False), default=timetools.now())
     last_change = Column(types.TIMESTAMP(timezone=False), default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
-    uuid = Column(Text)
+    uuid = Column(Text, unique=True)
     image = relationship('Image', secondary=log_image_table, backref='logs', order_by="desc(Image.timestamp_original)")
     track = relationship('Track', secondary=log_track_table, backref='logs')
     #etappe = relationship("Etappe", backref="logs", order_by="desc(Etappe.start_date)")
@@ -177,25 +229,19 @@ class Log(Base):
         etappe = Etappe.get_etappe_by_id(self.etappe)
         images = [i.reprJSON() for i in self.image]
         tracks = [i.reprJSON() for i in self.track]
-        content_uuid_tags = self.id_tags_to_uuid()
-        return dict(id=self.id, topic=self.topic, content=self.content, author=author.name, \
+        content_img_uuid_tags = self.imgid_tag_to_img_uuid_tag() #replace [imgid123]-tags with [img_uuid=123]-tags
+        return dict(id=self.id, topic=self.topic, content=content_img_uuid_tags, author=author.name, \
                     etappe = etappe.reprJSON(), created = self.created.strftime("%Y-%m-%d %H:%M:%S"), \
                     last_change=self.last_change.strftime("%Y-%m-%d %H:%M:%S"), published=published, \
                     images=images, tracks=tracks, uuid=self.uuid)
  
-
     
-    def id_tag_to_uuid(self):
-        print type(self.content)
-        print self.content
+    def imgid_tag_to_img_uuid_tag(self):
         imgid_list = re.findall("(\[imgid\d{1,}\])", self.content)
-        print imgid_list
         content_with_uuid_tags = self.content
         for imgid in imgid_list:
-            print imgid
-            tag_id = re.search("^\[imgid(\d{1,})\]$",imgid).group(1) #gets the id in [imgid123]
+            tag_id = re.search("^\[imgid(\d{1,})\]$",imgid).group(1) #gets the numeric id in [imgid123]
             image = Image.get_image_by_id(tag_id)
-            print image.uuid
             if image:
                 content_with_uuid_tags=content_with_uuid_tags.replace(imgid,('[img_uuid=%s]') % image.uuid)
         return content_with_uuid_tags
@@ -217,6 +263,12 @@ class Log(Base):
         log = DBSession.query(Log).filter(Log.id == id).one()
         return log
 
+    @classmethod
+    def get_log_by_uuid(self, uuid):
+        log = DBSession.query(Log).filter(Log.uuid == uuid).one()
+        return log
+
+
 
 class Image(Base):
     __tablename__ = 'image'
@@ -237,7 +289,7 @@ class Image(Base):
     trackpoint = Column(Integer, ForeignKey('trackpoint.id',onupdate="CASCADE", ondelete="CASCADE"))
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
-    uuid = Column(Text)
+    uuid = Column(Text, unique=True)
     log = relationship('Log', secondary=log_image_table, backref='images')
     __table_args__ = (
         UniqueConstraint('location', 'name', name='image_location_name'),
@@ -284,11 +336,13 @@ class Image(Base):
         timestamp_original = self.timestamp_original.strftime("%Y-%m-%d %H:%M:%S") 
         author = Author.get_author_by_id(self.author)
         trackpoint = Trackpoint.get_trackpoint_by_id(self.trackpoint)
+        if trackpoint:
+            trackpoint = trackpoint.reprJSON()
         return dict(id=self.id, name=self.name, location=self.location, title=self.title, comment=self.comment, 
                     alt=self.alt, aperture=self.aperture, shutter=self.shutter, 
                     focal_length=self.focal_length, iso=self.iso, timestamp_original=timestamp_original, 
                     hash=self.hash, hash_large=self.hash_large,
-                    author=author.reprJSON(), trackpoint=trackpoint.reprJSON(), 
+                    author=author.reprJSON(), trackpoint=trackpoint, 
                     last_change=self.last_change.strftime("%Y-%m-%d"), published=published, uuid=self.uuid)
 
 
@@ -296,7 +350,7 @@ class Image(Base):
 
     @classmethod
     def get_images(self):
-        images = DBSession.query(Image).all()
+        images = DBSession.query(Image).order_by(Image.timestamp_original).all()
         return images
 
     @classmethod
@@ -309,6 +363,16 @@ class Image(Base):
             return None
 
     @classmethod
+    def get_image_by_uuid(self, uuid):
+        try:
+            image = DBSession.query(Image).filter(Image.uuid == uuid).one()
+            return image
+        except Exception, e:
+            print "Error retrieving image %s: ",e
+            return None
+
+
+    @classmethod
     def get_image_by_hash(self, hash):
         image = DBSession.query(Image).filter(Image.hash == hash).one()
         return image
@@ -316,7 +380,7 @@ class Image(Base):
 class Track(Base):
     __tablename__ = 'track'
     id = Column(Integer, primary_key=True)
-    reduced_trackpoints = Column(Text)
+    reduced_trackpoints = Column("reduced_trackpoints", Text)
     distance = Column("distance", Text)
     timespan = Column("timespan", types.Interval)
     trackpoint_count = Column(Integer)
@@ -324,7 +388,7 @@ class Track(Base):
     end_time = Column("end_time", types.TIMESTAMP(timezone=False))
     color = Column("color", Text, default='FF0000')
     author = Column(Integer, ForeignKey('author.id',onupdate="CASCADE", ondelete="CASCADE"))
-    uuid = Column(Text)
+    uuid = Column(Text, unique=True)
     published = Column(types.TIMESTAMP(timezone=False))
     trackpoints = relationship("Trackpoint", backref="tracks", order_by="desc(Trackpoint.timestamp)")
     log = relationship('Log', secondary=log_track_table, backref='tracks')
@@ -409,6 +473,7 @@ class Trackpoint(Base):
     direction = Column("direction", types.Integer)
     pressure = Column("pressure", types.Integer)
     timestamp = Column("timestamp", types.TIMESTAMP(timezone=False))
+    uuid = Column(Text, unique=True)
     images = relationship("Image", backref="trackpoints")
     tracks_ref = relationship("Track", backref="trackpoints_ref")
     __table_args__ = (
@@ -416,7 +481,7 @@ class Trackpoint(Base):
         {}
         )
 
-    def __init__(self, track_id, latitude, longitude, altitude, velocity, temperature, direction, pressure, timestamp):
+    def __init__(self, track_id, latitude, longitude, altitude, velocity, temperature, direction, pressure, timestamp, uuid):
         self.track_id = track_id
         self.latitude = latitude
         self.longitude = longitude
@@ -426,6 +491,7 @@ class Trackpoint(Base):
         self.direction = direction
         self.pressure = pressure
         self.timestamp = timestamp
+        self.uuid = uuid
 
 
     def reprJSON(self):
@@ -434,7 +500,7 @@ class Trackpoint(Base):
         longitude = str(self.longitude)
         return dict(id=self.id, latitude=latitude, longitude=longitude, 
                     altitude=self.altitude, velocity=self.velocity, temperature=self.temperature, 
-                    direction=self.direction, pressure=self.pressure, timestamp=timestamp)  
+                    direction=self.direction, pressure=self.pressure, timestamp=timestamp, uuid=self.uuid)  
     
     @classmethod
     def get_trackpoint_by_id(self, id):
@@ -473,7 +539,7 @@ class Author(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, unique=True)
     password = Column(Unicode(80), nullable=False)
-    uuid = Column(Text)
+    uuid = Column(Text, unique=True)
     logs = relationship("Log", backref="author_ref")
     tracks = relationship("Track", backref="author_ref")
     images = relationship("Image", backref="author_ref")

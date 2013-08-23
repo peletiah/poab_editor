@@ -37,6 +37,7 @@ from poab_editor.helpers import (
 
 from time import strftime
 import datetime
+from datetime import timedelta
 import json,uuid
 
 
@@ -74,7 +75,7 @@ def editor(request):
     if request.matchdict:
         log_id = request.matchdict['logid']
         log = Log.get_log_by_id(log_id)
-        images_json = json.dumps([i.reprJSON() for i in log.image],cls=ComplexEncoder)
+        images_json = json.dumps([i.reprJSON() for i in log.image],cls=ComplexEncoder) #TODO: Order by timestamp_original
         tracks_json = json.dumps([i.reprJSON() for i in log.track],cls=ComplexEncoder)
         log_json = json.dumps(log.reprJSON(),cls=ComplexEncoder)
         if not log.etappe: #log.etappe might still be empty, so we create an empty array for AngularJS
@@ -87,12 +88,14 @@ def editor(request):
                         alt=None, comment=None, hash=None, author=None, \
                         last_change=None, published=None)])
         etappe_json = json.dumps(dict(id=None, start_date = None, end_date = None, name = None))
-        tracks_json = json.dumps([dict(id=None, reduced_trackpoints = None, distance=None, \
+        tracks_json = json.dumps([dict(id=None, reduced_trackpoints = list(), distance=None, \
                         timespan=None, trackpoint_count=None, start_time = None, end_time = None, \
                         color=None, author=None, uuid=None, published=None)])
         log_json = json.dumps(dict(id=None,topic=None, content=None, author=None, created=None, \
                         last_change=None, published=None))
-    return {'images': images_json, 'etappe' : etappe_json, 'tracks' : tracks_json, 'log': log_json, 'author': author}
+    etappe_datestr = Etappe.get_etappe_dropdown_list(5)
+    etappe_datestr_json = json.dumps([i.reprJSON() for i in etappe_datestr])
+    return {'images': images_json, 'etappe_datestr_json': etappe_datestr_json, 'etappe' : etappe_json, 'tracks' : tracks_json, 'log': log_json, 'author': author}
 
 
 @view_config(route_name='delete_log')
@@ -119,6 +122,11 @@ def save_log(request):
     tracks = log_json['tracks']
     etappe = log_json['etappe']
 
+    today=strftime("%Y-%m-%d")
+    
+    basedir = '/srv/trackdata/bydate'
+    filedir = filetools.createdir(basedir, author.name, today) #TODO: 990-dir is created, img_large_w is ignored
+    
     start_date = etappe['start_date']
     end_date = datetime.datetime.strptime(etappe['end_date'],'%Y-%m-%d') #unicode to datetime
     end_date = end_date+datetime.timedelta(days=1)-datetime.timedelta(seconds=1) #we need 23:59:59 this day, not 00:00:00
@@ -140,6 +148,7 @@ def save_log(request):
         log.topic = topic
         log.content = content
         log.last_change = timetools.now()
+        log.etappe = etappe.id
     else:
         #log_id is None, so this is a new post
         log = Log(topic=topic, content=content, author=author.id, etappe=etappe.id, created=timetools.now(), uuid=str(uuid.uuid4()))
@@ -195,7 +204,7 @@ def imageupload(request):
     img_large_w='990' #width of images in editor-preview
     img_medium_w='500' #width of images in editor-preview
     img_thumb_w='150' #width of images in editor-preview
-    filedir = filetools.createdir(basedir, author.name, today)
+    filedir = filetools.createdir(basedir, author.name, today) #TODO: 990-dir is created, img_large_w is ignored
     imgdir = filedir+'images/sorted/'
     images=list()
 
@@ -216,6 +225,7 @@ def imageupload(request):
                         hash=filehash, hash_large=None, author=author.id, trackpoint=None, last_change=timetools.now(), \
                         published=None, uuid=str(uuid.uuid4()))
             image.aperture, image.shutter, image.focal_length, image.iso, image.timestamp_original = imagetools.get_exif(image)
+            image.timestamp_original = image.timestamp_original#-timedelta(seconds=7200) #TODO
             trackpoint=gpxtools.sync_image_trackpoint(image)
             if trackpoint:
                 image.trackpoint = trackpoint.id
@@ -294,18 +304,19 @@ def trackupload(request):
     tracks_in_db = list()
 
     for file in filelist:
+        if upload: #only save files when upload-checkbox has been ticked
             filehash = filetools.safe_file_local(trackdir, file)
             print '\n'
             print file.filename
             print '\n'
 
-            parsed_tracks = gpxtools.parse_gpx(trackdir+file.filename)
+        parsed_tracks = gpxtools.parse_gpx(trackdir+file.filename)
 
-            for track_details in parsed_tracks:
-                track = add_track_to_db( track_details, author )
-                if track:
-                    add_trackpoints_to_db( track_details['trackpoints'], track )
-                    tracks_in_db.append(track)
+        for track_details in parsed_tracks:
+            track = add_track_to_db( track_details, author )
+            if track:
+                add_trackpoints_to_db( track_details['trackpoints'], track )
+                tracks_in_db.append(track)
 
     return Response(json.dumps({'tracks':tracks_in_db},cls=ComplexEncoder))
 

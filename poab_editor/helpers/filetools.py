@@ -12,6 +12,12 @@ def createdir(abspath, relpath1, relpath2):
     else:
         os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/raw')
 
+    if os.access(abspath+'/'+relpath1+'/'+relpath2+'/images/jpg',os.F_OK):
+        pass
+    else:
+        os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/jpg')
+
+
     if os.access(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted',os.F_OK):
         pass
     else:
@@ -32,11 +38,18 @@ def createdir(abspath, relpath1, relpath2):
     else:
         os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/images/sorted/thumb')
 
+    if os.access(abspath+'/'+relpath1+'/'+relpath2+'/videos',os.F_OK):
+        pass
+    else:
+        os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/videos')
+
 
     if os.access(abspath+'/'+relpath1+'/'+relpath2+'/trackfile',os.F_OK):
         pass
     else:
         os.mkdir(abspath+'/'+relpath1+'/'+relpath2+'/trackfile')
+
+
     return abspath+'/'+relpath1+'/'+relpath2+'/'
 
 

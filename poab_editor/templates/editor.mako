@@ -3,20 +3,47 @@
 
 <%include file='header.mako' />
 
-<div ng-init="images=${images}; etappe=${etappe}; log=${log}; tracks=${tracks}" ng-controller="EditorCtrl">
+<div ng-init="images=${images}; etappe_datestr_json=${etappe_datestr_json}; etappe=${etappe}; log=${log}; tracks=${tracks}" ng-controller="EditorCtrl">
 <tabs>
 
 
-
-  <pane class="paneContent" heading="Editor" active="pane.active">
+  <pane class="paneContent" heading="Etappe" active="pane.active">
     <h4>Etappe</h4>
-    <input type="text" ng-model="etappe.name" placeholder="Etappe name" value="{{etappe.name}}"/>
+    <div class="dropdown">
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#"><small>choose existing...</small></a>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+        <li ng-repeat="etappe_choice in etappe_datestr_json">
+          <a ng-click=" etappe.id = etappe_choice.id;
+                        etappe.name = etappe_choice.name; 
+                        etappe.start_date = etappe_choice.start_date;
+                        etappe.end_date = etappe_choice.end_date">
+                      <small><b>{{etappe_choice.date_str}}</b>, {{etappe_choice.name}}</small>
+          </a>
+        </li>
+      </ul>
+      <p ng-show="etappe.id">
+        <a ng-click="etappe.id = null;
+                  etappe.name = null; 
+                  etappe.start_date = null;
+                  etappe.end_date = null">
+          <small>new...</small>
+        </a>
+      </p>
+    </div>
+  <input type="text" ng-model="etappe.name" placeholder="Etappe name" value="{{etappe.name}}"/>
     <div>
       <input type="text" ng-model="etappe.start_date" name="mDate" placeholder="Etappe start date" value="{{etappe.start_date}}" date-picker/>
       <input type="text" ng-model="etappe.end_date" name="mDate" placeholder="Etappe end date" value="{{etappe.end_date}}" date-picker/>
     </div>
-    <hr>
-    <h4>Log</h4>
+
+    <button class="btn btn-small btn-primary" id="save" ng-click="saveLog()">save</button>
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+  <hr> 
+  </pane>
+
+
+  <pane class="paneContent" heading="Editor" active="pane.active">
+      <h4>Log</h4>
     <div>
       <input type="text" ng-model="log.topic" placeholder="Topic">
     </div>

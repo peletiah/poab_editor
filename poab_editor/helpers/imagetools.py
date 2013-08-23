@@ -17,10 +17,22 @@ def get_exif(image):
         os.popen(('%s -j -ShutterSpeed -Aperture -ISO -FocalLength -DateTimeOriginal %s%s') % (exiftool, image.location, image.name)).read()
     )
     print exif
-    aperture = exif[0]['Aperture']
-    shutter = exif[0]['ShutterSpeed']
-    focal_length = exif[0]['FocalLength']
-    iso = exif[0]['ISO']
+    try:
+        aperture = exif[0]['Aperture']
+    except:
+        aperture = None
+    try:
+        shutter = exif[0]['ShutterSpeed']
+    except:
+        shutter = None
+    try:
+        focal_length = exif[0]['FocalLength']
+    except:
+        focal_length = None
+    try:
+        iso = exif[0]['ISO']
+    except:
+        iso = None
     timestamp_original = datetime.datetime.strptime(exif[0]['DateTimeOriginal'], "%Y:%m:%d %H:%M:%S")
     print aperture, shutter, focal_length, iso, timestamp_original
     return aperture, shutter, focal_length, iso, timestamp_original

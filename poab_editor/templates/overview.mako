@@ -35,9 +35,8 @@
       <div>
         <small>created on {{log.created}} by {{log.author}}</small>
       </div>
-      <ul ng-show="displayDetails[log.id]">
+      <ul ng-show="displayDetails[log.id]" class="unstyled">
         <li>
-          {{isItemSynced[log.id][log.uuid]}}
           {{log.topic}} (Log)
           <span class="syncStatus">
             <span ng-show="isItemSynced[log.id][log.uuid]=='sync_in_progress'" class='loading'></span>
@@ -48,9 +47,8 @@
         </li>
       </ul>
 
-      <ul ng-repeat="image in log.images" ng-show="displayDetails[log.id]">
+      <ul ng-repeat="image in log.images" ng-show="displayDetails[log.id]" class="unstyled">
         <li>
-          {{isItemSynced[log.id][image.uuid]}}
           <img src="/static{{image.location}}150/{{image.name}}">
           <span class="syncStatus">
             <span ng-show="isItemSynced[log.id][image.uuid]=='sync_in_progress'" class='loading'></span>
@@ -60,10 +58,9 @@
           </span>
         </li>
       </ul>
-      <ul ng-repeat="track in log.tracks" ng-show="displayDetails[log.id]">
+      <ul ng-repeat="track in log.tracks" ng-show="displayDetails[log.id]" class="unstyled">
         <li>
-          {{isItemSynced[log.id][track.uuid]}}
-          {{track.name}}
+          {{track.distance}}km
           <span class="syncStatus">
             <span ng-show="isItemSynced[log.id][track.uuid]=='sync_in_progress'" class='loading'></span>
             <span ng-show="isItemSynced[log.id][track.uuid]=='was_synced'" class='icon-check'></span>

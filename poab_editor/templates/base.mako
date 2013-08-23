@@ -12,8 +12,8 @@
     <script type="text/javascript" src="/static/lib/jquery/1.9.0/jquery.min.js"></script>
     <script type="text/javascript" src="/static/lib/jqueryui/1.10.0/jquery-ui.min.js"></script>
     <script type="text/javascript" src="/static/lib/angularjs/1.0.4/angular.js"></script>
-    <script type="text/javascript" src="/static/lib/angular-ui-0.3.2/build/angular-ui.js"></script>
-    <script type="text/javascript" src="/static/lib/ng-bootstrap/ui-bootstrap-tpls-0.1.0.js"></script>
+    <script type="text/javascript" src="/static/lib/angular-ui-0.4.0/build/angular-ui.js"></script>
+    <script type="text/javascript" src="/static/lib/angular-ui-bootstrap/ui-bootstrap-tpls-0.1.0.js"></script>
     <script type="text/javascript" src="/static/lib/tinymce/3.5.8/tiny_mce_src.js"></script>
     <script type="text/javascript" src="/static/lib/tinymce/3.5.8/jquery.tinymce.js"></script>
     <script type="text/javascript" src="/static/lib/colorbox/jquery.colorbox.js"></script>

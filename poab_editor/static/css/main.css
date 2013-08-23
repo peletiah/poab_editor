@@ -84,3 +84,7 @@ margin: 1em 2em;
 .opaque {
   opacity: 0.3;
 }
+
+.dropdown {
+  margin: 1em 0 1em 0
+}

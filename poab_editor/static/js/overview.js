@@ -55,6 +55,7 @@ var OverviewCtrl = function ($scope, $dialog, $http, $timeout){
 $scope.displayDetails = [];
 $scope.syncInProgress = [];
 $scope.isItemSynced = [];
+$scope.syncedItems = [];
 
 
 
@@ -92,6 +93,7 @@ $scope.isItemSynced = [];
       data['track']=item
     }
     data['log']=log;
+    console.log(data)
     $http({
       url: '/sync?type='+type,
       data: data,
@@ -102,8 +104,20 @@ $scope.isItemSynced = [];
 
 
   $scope.syncItemSuccess = function(data, status) {
-      console.log('Success')
-      //console.log(data)
+      console.log(data)
+      uuid_exists = false
+
+      // make sure we only push new items to $scope.syncedItems
+      // otherwise interlinkAllRemoteItems will be run multiple times for identical items
+      for ( i in $scope.syncedItems ) {
+        if ( data.item_uuid == $scope.syncedItems[i].item_uuid) {
+          uuid_exists = true
+        }
+      };
+      if ( !uuid_exists ) {
+        $scope.syncedItems.push(data)
+      };
+
       item_uuid = data.item_uuid
       log_id = data.log_id
       sync_status = data.sync_status
@@ -116,12 +130,8 @@ $scope.isItemSynced = [];
       //console.log('allTimesSynced: '+allItemsSynced($scope.isItemSynced[log_id]));
       //test if all items in object are synced - if true, hide log-details after 4 sec
       if (allItemsSynced($scope.isItemSynced[log_id])) {
-        $timeout(
-        function() {
-          $scope.syncInProgress[log_id]=false;
-          $scope.displayDetails[log_id]=false;
-          }, 4000)
-      };
+        interlinkAllRemoteItems($scope.syncedItems);
+        };
   };
 
   function allItemsSynced(items_sync_state) {
@@ -130,15 +140,44 @@ $scope.isItemSynced = [];
     for (each in items_sync_state) {
       all_sync_states.push(items_sync_state[each]) //we need an array of sync_states for the allTrue-function
     }
-    console.log(all_sync_states)
     all_synced=all_sync_states.every(allTrue) //test if all items are in sync
-    console.log(all_synced)
     return all_synced
   }
 
   function allTrue(element, index, array) {
     return ((element == 'was_synced') || (element == 'is_synced'))
   }
+
+
+  function interlinkAllRemoteItems(syncedItems) {
+      console.log(syncedItems)
+      for ( index in syncedItems ) {
+        type=syncedItems[index].type
+        //console.log(syncedItems[index].type+': ', syncedItems[index].item_uuid)
+        //console.log(syncedItems[index])
+        //console.log(data)
+
+        $http({
+            url: '/sync?interlink',
+            data: syncedItems[index],
+            method: 'POST',
+            headers : {'Content-Type':'application/json; charset=UTF-8'}
+        }).success($scope.syncItemLinkSuccess);
+
+      }
+
+      $timeout(
+        function() {
+          $scope.syncInProgress[log_id]=false;
+          $scope.displayDetails[log_id]=false;
+          }, 4000)
+
+  };
+
+  $scope.syncItemLinkSuccess = function(data, status) {
+    console.log(data)
+  };
+
 
   $scope.itemSyncState = function(item_uuid, log_id, state) {
     $scope.isItemSynced[log_id][item_uuid]=state
