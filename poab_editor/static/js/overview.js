@@ -5,7 +5,7 @@ var OverviewCtrl = function ($scope, $dialog, $http, $timeout){
 
 
   //delete specific log-entry, with confirmation-dialog
-  $scope.confirmDelete = function(log){
+  $scope.confirmDeleteLog = function(log){
     var title = log.topic;
     var msg = 'Are you sure you want to delete \''+log.topic+'\'\n, created on '+log.created+'?';
     var btns = [{result:'cancel', label: 'Cancel', cssClass: 'btn btn-small'}, {result:'ok', label: 'OK', cssClass: 'btn btn-primary btn-small'}];
@@ -18,7 +18,7 @@ var OverviewCtrl = function ($scope, $dialog, $http, $timeout){
         if (result == 'ok') {
           //delete log-entry from Database(via Backend-Server)
           $http({
-            url: '/delete',
+            url: '/delete_log',
             data: log_json,
             method: 'POST',
             headers : {'Content-Type':'application/json; charset=UTF-8'}

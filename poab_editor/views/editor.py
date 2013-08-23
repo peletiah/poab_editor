@@ -243,6 +243,19 @@ def imageupload(request):
     return Response(json.dumps({'images':images},cls=ComplexEncoder))
 
 
+@view_config(route_name='delete_image')
+def delete_image(request):
+    image_json = request.json_body
+    image_id = image_json['id']
+    image = Image.get_image_by_id(image_id)
+    print image.id
+    DBSession.delete(image)
+    DBSession.flush()
+    return Response(image.name)
+
+
+
+
 def add_trackpoints_to_db(trackpoints, track): 
     for trackpoint in trackpoints:
         trackpoint_in_db = Trackpoint.get_trackpoint_by_lat_lon_time(trackpoint.latitude, \

@@ -44,9 +44,10 @@ def main(global_config, **settings):
 
     config.add_route('fileupload', '/fileupload', factory=LogFactory)
     config.add_route('update_image_metadata', '/update_image_metadata', factory=LogFactory)
+    config.add_route('delete_image', '/delete_image', factory=LogFactory)
 
     config.add_route('save_log', '/save_log', factory=LogFactory)
-    config.add_route('delete_log', '/delete', factory=LogFactory)
+    config.add_route('delete_log', '/delete_log', factory=LogFactory)
     config.add_route('preview', '/preview', factory=LogFactory)
 
     config.add_route('login', '/login')

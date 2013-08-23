@@ -1,7 +1,7 @@
 // Controllers
 
 
-var EditorCtrl = function ($scope, $http, $timeout) {
+var EditorCtrl = function ($scope, $dialog, $http, $timeout) {
 
 // ## GENERAL FUNCTIONS ##
 
@@ -60,6 +60,76 @@ var EditorCtrl = function ($scope, $http, $timeout) {
 
 
 // ## IMAGE FUNCTIONS ##
+
+var t = '<div class="modal-header">'+
+          '<h3></h3>'+
+          '</div>'+
+          '<div class="modal-body">'+
+          '<p>Enter a value to pass to <code>close</code> as the result: <input ng-model="result" /></p>'+
+          '</div>'+
+          '<div class="modal-footer">'+
+          '<button ng-click="close(result)" class="btn btn-primary" >Close</button>'+
+          '</div>';
+
+
+  //delete specific image, with confirmation-dialog
+  $scope.confirmDeleteImage = function(image){
+    var msg = '<div class="modal-header">'+
+              '<h3>Deleting image'+image.name+'</h3>'+
+              '</div>'+
+              '<div class="modal-body">'+
+              '<p>Are you sure you want to delete <b>'+image.name+'</b>:</p>'+
+              '<p><img src="/static'+image.location+'500/'+image.name+'"></p>'+
+              '</div>'+
+              '<div class="modal-footer">'+
+              '<button ng-click="close(\'cancel\')" class="btn btn-small" >Cancel</button>'+
+              '<button ng-click="close(\'ok\')" class="btn btn-small" >OK</button>'+
+              '</div>';
+    var btns = [{result:'cancel', label: 'Cancel', cssClass: 'btn btn-small'}, {result:'ok', label: 'OK', cssClass: 'btn btn-primary btn-small'}];
+    var image_json = JSON.stringify(image, null, 0);
+ 
+    $scope.opts = {
+        backdrop: true,
+        keyboard: true,
+        backdropClick: true,
+        template:  msg, // OR: templateUrl: 'path/to/view.html',
+        controller: 'TestDialogController' 
+      };
+    
+    $dialog.dialog($scope.opts)
+      .open()
+      .then(function(result){
+        //has the user confirmed the dialog-box
+        if (result == 'ok') {
+          //delete image-entry from Database(via Backend-Server)
+          $http({
+            url: '/delete_image',
+            data: image_json,
+            method: 'POST',
+            headers : {'Content-Type':'application/json; charset=UTF-8'}
+          }).success($scope.deleteImageSuccess);
+          //immediately delete image-entry from view($scope.images-array)
+          for (i in $scope.images) {
+            if ($scope.images[i].id == image.id) {
+              delete $scope.images[i]
+              console.log('delete',$scope['images'])
+            };
+          };
+        }
+      });
+  };
+
+ 
+  $scope.deleteImageSuccess = function (data, status) {
+    if (status = '200') {
+      $scope.alerts.push({type: 'success', msg: 'Image "'+data+'" has been successfully deleted'});
+      $timeout(function() {$scope.closeAlert(0)}, 3000)
+    } else {
+      console.log('Error!'+status)
+      $scope.alerts.push({type: 'error', msg: 'Error while deleting Image: '+data+', Status Code: '+status});
+    };
+  };
+
 
   $scope.updateImageMetadata = function () {
     images_json = JSON.stringify($scope.images, null, 0)
@@ -127,7 +197,6 @@ var EditorCtrl = function ($scope, $http, $timeout) {
       /* This event is raised when the server sent back a response */
       $scope.$apply( function(){
         files_json = JSON.parse(evt.target.responseText)
-        console.log(files_json)
         //has a trackfile or images been uploaded?
         if ( files_json['tracks'] ) {
           var filetype = 'tracks'
@@ -138,12 +207,15 @@ var EditorCtrl = function ($scope, $http, $timeout) {
         console.log('Server response was json with '+filetype+', trying to add them to scope')
         for (var i = 0; i < files_json[filetype].length; i++) {
           var uuidmatch = false;
+          console.log('upload',$scope[filetype], $scope[filetype].length)
           for ( var j = 0; j < $scope[filetype].length; j++) {
-            if ( files_json[filetype][i].uuid == $scope[filetype][j].uuid ) {
-              uuidmatch = true;
-              console.log('uuidmatch found, object already in $scope');
-            };
-          };
+            if ( typeof $scope[filetype][j] !== 'undefined') {
+              if ( files_json[filetype][i].uuid == $scope[filetype][j].uuid ) {
+                uuidmatch = true;
+                console.log('uuidmatch found, object already in $scope');
+              };
+            }
+          }
           if ( uuidmatch == false) {
             console.log('this object is not in $scope yet, we will add it');
             console.log(files_json[filetype][i].uuid)
@@ -178,3 +250,12 @@ var EditorCtrl = function ($scope, $http, $timeout) {
 };
 
 
+function TestDialogController($scope, dialog){
+
+  $scope.close = function(result){
+
+    dialog.close(result);
+
+  };
+
+}

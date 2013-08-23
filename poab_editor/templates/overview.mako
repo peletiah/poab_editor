@@ -15,7 +15,7 @@
         <a class="toolbar" title="Preview" colorbox transition="fade", speed=350, href="/preview?logid={{log.id}}">
           <span class="icon-eye-open"></span></a>
 
-        <a class="toolbar" href="#" title="Delete" ng-click="confirmDelete(log)">
+        <a class="toolbar" href="#" title="Delete" ng-click="confirmDeleteLog(log)">
           <span class="icon-remove"></span></a>
 
         <a class="toolbar" href="#" title="Sync to server" ng-click="syncToServer(log)" ng-hide="syncInProgress[log.id]">

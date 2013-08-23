@@ -99,6 +99,12 @@
           <img src="/static{{image.location}}500/{{image.name}}">
           <div class="metadata">
               <div class="control-group">
+                <div class="controls">
+                  <a class="toolbar" href="#" title="Delete" ng-click="confirmDeleteImage(image)">
+                    <span class="icon-remove"></span></a>
+                </div>
+              </div>
+              <div class="control-group">
                 <label class="control-label" for="inputTitle">image title</label>
                 <div class="controls">
                   <input type="text" name="inputTitle-{{image.id}}" ng-model="image.title" placeholder="Title of the image" value="{{image.title}}">
