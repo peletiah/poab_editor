@@ -38,55 +38,61 @@ import json
 import requests
 
 
+#Don't resync all items, only interlink them TODO
+interlink_only=True
+
 @view_config(route_name='sync', request_param='type=log')
 def logsync(request):
     log = Log.get_log_by_id(request.json_body['log']['id'])
     print log.id
     print log.reprJSON_extended()
-    url = 'http://poab.org:6544/sync?type=log'
-    payload = {'log_json':json.dumps(log.reprJSON_extended())}
-    headers = {'content-type':'application/json'}
-    remote_sync_info = requests.post(url, files=payload)
-    sync_status=json.loads(remote_sync_info.text)['sync_status'] #if sync_status is True, we already have this image on the server
-    if sync_status == 'is_synced':
-        log.published = timetools.now()
-        DBSession.add(log)
-    return Response(remote_sync_info.text)
-    #return Response(json.dumps({'log_id':log.id, 'type':'log', 'item_uuid':log.uuid, 'sync_status':'was_synced'}))
+    if interlink_only:
+        return Response(json.dumps({'log_id':log.id, 'type':'log', 'item_uuid':log.uuid, 'sync_status':'was_synced'}))
+    else:
+        url = 'http://poab.org:6544/sync?type=log'
+        payload = {'log_json':json.dumps(log.reprJSON_extended())}
+        headers = {'content-type':'application/json'}
+        remote_sync_info = requests.post(url, files=payload)
+        sync_status=json.loads(remote_sync_info.text)['sync_status'] #if sync_status is True, we already have this image on the server
+        if sync_status == 'is_synced':
+            log.published = timetools.now()
+            DBSession.add(log)
+        return Response(remote_sync_info.text)
 
 
 
 @view_config(route_name='sync', request_param='type=image')
 def imagesync(request):
     image = Image.get_image_by_id(request.json_body['image']['id'])
-
-    if not image.trackpoint: #find trackpoint for image if there was none yet
-        trackpoint=gpxtools.sync_image_trackpoint(image)
-        if trackpoint:
-            image.trackpoint = trackpoint.id
-            DBSession.add(image)
-            DBSession.flush()
     log_json = request.json_body['log']
     log = Log.get_log_by_id(log_json['id'])
 
-    headers = {'content-type':'application/json'}
-    url = 'http://poab.org:6544/sync?type=status'
-    payload = {'payloadtype':'image', 'image_json':json.dumps(image.reprJSON()), 'log_json':json.dumps(log.reprJSON())}
-    remote_sync_info = requests.post(url, data=payload)
-    print remote_sync_info.text
-    sync_status=json.loads(remote_sync_info.text)['sync_status'] #if sync_status is 'was_synced', we already have this image on the server
-    print '\n################ IMAGE SYNC STATUS: '+sync_status+str(log.id) + '\n'
-
-    if sync_status == 'not_synced':
-        #image_bin = open(image.location+image.name, 'rb')
-        image_bin = ''
-        url = 'http://poab.org:6544/sync?type=image'
-        payload = {'image_json':json.dumps(image.reprJSON_extended()), 'image_bin':image_bin, 'log':json.dumps(log.reprJSON())}
+    if interlink_only:
+        return Response(json.dumps({'log_id':log.id,'type':'image',  'item_uuid':image.uuid, 'sync_status':'was_synced'}))
+    else:
+        if not image.trackpoint: #find trackpoint for image if there was none yet
+            trackpoint=gpxtools.sync_image_trackpoint(image)
+            if trackpoint:
+                image.trackpoint = trackpoint.id
+                DBSession.add(image)
+                DBSession.flush()
         headers = {'content-type':'application/json'}
-        remote_sync_info = requests.post(url, files=payload)
+        url = 'http://poab.org:6544/sync?type=status'
+        payload = {'payloadtype':'image', 'image_json':json.dumps(image.reprJSON()), 'log_json':json.dumps(log.reprJSON())}
+        remote_sync_info = requests.post(url, data=payload)
+        print remote_sync_info.text
+        sync_status=json.loads(remote_sync_info.text)['sync_status'] #if sync_status is 'was_synced', we already have this image on the server
+        print '\n################ IMAGE SYNC STATUS: '+sync_status+str(log.id) + '\n'
 
-    return Response(remote_sync_info.text)
-    #return Response(json.dumps({'log_id':log.id,'type':'image',  'item_uuid':image.uuid, 'sync_status':'was_synced'}))
+        if sync_status == 'not_synced':
+            #image_bin = open(image.location+image.name, 'rb')
+            image_bin = ''
+            url = 'http://poab.org:6544/sync?type=image'
+            payload = {'image_json':json.dumps(image.reprJSON_extended()), 'image_bin':image_bin, 'log':json.dumps(log.reprJSON())}
+            headers = {'content-type':'application/json'}
+            remote_sync_info = requests.post(url, files=payload)
+
+        return Response(remote_sync_info.text)
 
 
 @view_config(route_name='sync', request_param='type=track')
@@ -97,26 +103,27 @@ def tracksync(request):
     log = Log.get_log_by_id(log_json['id'])
 
     print track.reprJSON_extended()['author']
-
-
-    headers = {'content-type':'application/json'}
-    url = 'http://poab.org:6544/sync?type=status'
-    payload = {'payloadtype':'track', 'track_json':json.dumps(track.reprJSON()), 'log_json':json.dumps(log.reprJSON())}
-    remote_sync_info = requests.post(url, data=payload)
-    print remote_sync_info.text
-    sync_status=json.loads(remote_sync_info.text)['sync_status'] #if sync_status is 'was_synced', we already have this track on the server
-    print '\n################ TRACK SYNC STATUS: '+sync_status+str(log.id) + '\n'
-    #TODO: this prevents half uploaded trackpoints from beeing finished!!!!
-
-    if sync_status == 'not_synced':
+    
+    if interlink_only:
+        return Response(json.dumps({'log_id':log.id, 'type':'track', 'item_uuid':track.uuid, 'sync_status':'was_synced'}))
+    else:
         headers = {'content-type':'application/json'}
-        url = 'http://poab.org:6544/sync?type=track'
-        payload = {'track':json.dumps(track.reprJSON_extended()), 'log_json':json.dumps(log.reprJSON())}
-    
+        url = 'http://poab.org:6544/sync?type=status'
+        payload = {'payloadtype':'track', 'track_json':json.dumps(track.reprJSON()), 'log_json':json.dumps(log.reprJSON())}
         remote_sync_info = requests.post(url, data=payload)
-    
-    return Response(remote_sync_info.text)
-    #return Response(json.dumps({'log_id':log.id, 'type':'track', 'item_uuid':track.uuid, 'sync_status':'was_synced'}))
+        print remote_sync_info.text
+        sync_status=json.loads(remote_sync_info.text)['sync_status'] #if sync_status is 'was_synced', we already have this track on the server
+        print '\n################ TRACK SYNC STATUS: '+sync_status+str(log.id) + '\n'
+        #TODO: this prevents half uploaded trackpoints from beeing finished!!!!
+
+        if sync_status == 'not_synced':
+            headers = {'content-type':'application/json'}
+            url = 'http://poab.org:6544/sync?type=track'
+            payload = {'track':json.dumps(track.reprJSON_extended()), 'log_json':json.dumps(log.reprJSON())}
+        
+            remote_sync_info = requests.post(url, data=payload)
+        
+        return Response(remote_sync_info.text)
 
 @view_config(route_name='sync', request_param='interlink')
 def interlink(request):
@@ -146,7 +153,7 @@ def interlink(request):
             print track
             headers = {'content-type':'application/json'}
             url = 'http://poab.org:6544/sync?interlink=track'
-            payload = {'track_json':json.dumps(track.reprJSON_extended())}
+            payload = {'track_json':json.dumps(track.reprJSON())}
             remote_sync_info = requests.post(url, data=payload)
     print remote_sync_info
     return Response(remote_sync_info.text)

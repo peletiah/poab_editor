@@ -108,14 +108,14 @@ class Etappe(Base):
 
     @classmethod
     def get_etappen(self):
-        etappen = DBSession.query(etappe).all()
+        etappen = DBSession.query(etappe).order_by(start_date.desc()).all()
         return etappen
 
     @classmethod
     def get_etappe_dropdown_list(self, limit):
         #returns a Etappe-Object with additional attribute "date_str"
         #date_str is a prettified merge of "start_date" and "end_date"
-        etappen = DBSession.query(Etappe).limit(limit).all()
+        etappen = DBSession.query(Etappe).order_by(Etappe.start_date.desc()).limit(limit).all()
         etappe_dropdown_list=list()
         for etappe in etappen:
             day_str = month_str = year_str = date_str = None
@@ -183,7 +183,7 @@ class Log(Base):
     last_change = Column(types.TIMESTAMP(timezone=False), default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
     uuid = Column(Text, unique=True)
-    image = relationship('Image', secondary=log_image_table, backref='logs', order_by="desc(Image.timestamp_original)")
+    image = relationship('Image', secondary=log_image_table, backref='logs', order_by="asc(Image.timestamp_original)")
     track = relationship('Track', secondary=log_track_table, backref='logs')
     #etappe = relationship("Etappe", backref="logs", order_by="desc(Etappe.start_date)")
 

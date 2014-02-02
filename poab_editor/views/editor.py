@@ -156,10 +156,14 @@ def save_log(request):
     DBSession.flush()
     print 'logid='+str(log.id)
     for image in images:
-        if image['id']:
-            print 'imageid:'+ str(image['id'])
-            image = Image.get_image_by_id(image['id'])
-            log.image.append(image)
+        try:
+            if image['id']:
+                print 'imageid:'+ str(image['id'])
+                image = Image.get_image_by_id(image['id'])
+                log.image.append(image)
+        except Exception, e:
+            print e
+            print 'ERROR while saving log'
     for track in tracks:
         if track['id']:
             print 'trackid:'+ str(track['id'])

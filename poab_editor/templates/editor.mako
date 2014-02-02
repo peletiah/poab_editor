@@ -96,7 +96,7 @@
      <hr>
      <div ng-repeat="image in images | filter:query">
         <div ng-show="image.id"> <!-- only display this section if the image.id is not null -->
-          <img src="/static{{image.location}}500/{{image.name}}">
+          <a href="/static{{image.location}}/{{image.name}}" target="_blank"><img src="/static{{image.location}}500/{{image.name}}"></a>
           <div class="metadata">
               <div class="control-group">
                 <div class="controls">
