@@ -63,6 +63,7 @@ def main(global_config, **settings):
     config.add_route('edit_group', '/group/{name}/{action}', factory=LogFactory)
     
     config.add_route('sync', '/sync')
+    config.add_route('hash_fix', '/fix_hash')
 
     config.scan()
     return config.make_wsgi_app()

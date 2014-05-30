@@ -39,7 +39,7 @@ import requests
 
 
 #Don't resync all items, only interlink them TODO
-interlink_only=True
+interlink_only=False
 
 @view_config(route_name='sync', request_param='type=log')
 def logsync(request):
