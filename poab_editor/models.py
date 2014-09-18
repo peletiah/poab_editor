@@ -63,18 +63,18 @@ COST_FACTOR = 10000
 
 log_image_table = Table('log_image', Base.metadata,
     Column('log_id', Integer, ForeignKey('log.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
-    Column('image_id', Integer, ForeignKey('image.id',onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
+    Column('image_id', Integer, ForeignKey('image.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
     UniqueConstraint('log_id', 'image_id', name='log_id_image_id'))
 
 log_track_table = Table('log_track', Base.metadata,
     Column('log_id', Integer, ForeignKey('log.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
-    Column('track_id', Integer, ForeignKey('track.id',onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
+    Column('track_id', Integer, ForeignKey('track.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
     UniqueConstraint('log_id', 'track_id', name='log_id_track_id'))
 
 
 author_group_table = Table('author_group', Base.metadata,
     Column('author_id', Integer, ForeignKey('author.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
-    Column('group_id', Integer, ForeignKey('group.id',onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
+    Column('group_id', Integer, ForeignKey('group.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
     UniqueConstraint('author_id', 'group_id', name='author_id_group_id'))
 
 
@@ -183,7 +183,7 @@ class Log(Base):
     last_change = Column(types.TIMESTAMP(timezone=False), default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
     uuid = Column(Text, unique=True)
-    image = relationship('Image', secondary=log_image_table, backref='logs', order_by="asc(Image.timestamp_original)")
+    image = relationship('Image', secondary=log_image_table, backref='logs', passive_deletes=True, order_by="asc(Image.timestamp_original)")
     track = relationship('Track', secondary=log_track_table, backref='logs')
     #etappe = relationship("Etappe", backref="logs", order_by="desc(Etappe.start_date)")
 
@@ -290,7 +290,7 @@ class Image(Base):
     last_change = Column(types.TIMESTAMP(timezone=False),default=timetools.now())
     published = Column(types.TIMESTAMP(timezone=False))
     uuid = Column(Text, unique=True)
-    log = relationship('Log', secondary=log_image_table, backref='images')
+    log = relationship('Log', secondary=log_image_table, passive_deletes=True,  backref='images')
     __table_args__ = (
         UniqueConstraint('location', 'name', name='image_location_name'),
         {}
