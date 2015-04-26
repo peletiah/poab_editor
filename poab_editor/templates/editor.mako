@@ -4,7 +4,7 @@
 <%include file='header.mako' />
 
 <div ng-init="images=${images}; etappe_datestr_json=${etappe_datestr_json}; etappe=${etappe}; log=${log}; tracks=${tracks}" ng-controller="EditorCtrl">
-<tabs>
+<tabs class="span12 offset4">
 
 
   <pane class="paneContent" heading="Etappe" active="pane.active">

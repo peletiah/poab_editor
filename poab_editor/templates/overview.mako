@@ -2,7 +2,7 @@
 
 <%include file='header.mako' />
 
-<div ng-init="logs=${logs}" ng-controller="OverviewCtrl">
+<div ng-init="logs=${logs}" ng-controller="OverviewCtrl" class="span12 offset4">
 
   <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
   <div ng-repeat="log in logs">
