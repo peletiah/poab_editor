@@ -85,8 +85,8 @@ def imagesync(request):
         print '\n################ IMAGE SYNC STATUS: '+sync_status+str(log.id) + '\n'
 
         if sync_status == 'not_synced':
-            #image_bin = open(image.location+image.name, 'rb')
-            image_bin = ''
+            image_bin = open(image.location+image.name, 'rb')
+            #image_bin = ''
             url = 'http://poab.org:6544/sync?type=image'
             payload = {'image_json':json.dumps(image.reprJSON_extended()), 'image_bin':image_bin, 'log':json.dumps(log.reprJSON())}
             headers = {'content-type':'application/json'}
