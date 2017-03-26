@@ -46,7 +46,7 @@ def authors_view(request):
 )
 def author_view(request):
     author = request.context
-    print author
+    print(author)
     logs = Log.get_logs_by_author(author.id)
 
     return {

@@ -37,14 +37,15 @@ from pyramid.security import (
     ALL_PERMISSIONS
     )
 
-import hashlib
-from poab_editor.helpers.pbkdf2.pbkdf2 import pbkdf2_bin
+#import hashlib
+from passlib.hash import pbkdf2_sha256
+#from poab_editor.helpers.pbkdf2.pbkdf2 import pbkdf2_bin
 from os import urandom
 from base64 import b64encode, b64decode
-from itertools import izip
 import uuid as uuidlib
 import re
 
+izip = zip
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
@@ -358,8 +359,8 @@ class Image(Base):
         try:
             image = DBSession.query(Image).filter(Image.id == id).one()
             return image
-        except Exception, e:
-            print "Error retrieving image %s: ",e
+        except Exception as e:
+            print("Error retrieving image {0}: ".format(e))
             return None
 
     @classmethod
@@ -367,8 +368,8 @@ class Image(Base):
         try:
             image = DBSession.query(Image).filter(Image.uuid == uuid).one()
             return image
-        except Exception, e:
-            print "Error retrieving image %s: ",e
+        except Exception as e:
+            print("Error retrieving image %s: ",e)
             return None
 
 
@@ -456,8 +457,8 @@ class Track(Base):
         try:
             track = DBSession.query(Track).filter(Track.reduced_trackpoints == reduced_trackpoints).one()
             return track
-        except Exception, e:
-            print "Error retrieving track %s: ",e
+        except Exception as e:
+            print("Error retrieving track %s: ",e)
             return None
 
 
@@ -507,7 +508,7 @@ class Trackpoint(Base):
         try:
             trackpoint = DBSession.query(Trackpoint).filter(Trackpoint.id == id ).one()
             return trackpoint
-        except Exception, e:
+        except Exception as e:
             print ("Error retrieving trackpoint by id(%s):\n %s ") % (id, e)
             return None
 
@@ -518,7 +519,7 @@ class Trackpoint(Base):
         try:
             trackpoint = DBSession.query(Trackpoint).filter(and_(Trackpoint.latitude == latitude, Trackpoint.longitude == longitude, Trackpoint.timestamp == timestamp)).one()
             return trackpoint
-        except Exception, e:
+        except Exception as e:
             print ("Error retrieving trackpoint by lat(%s), lon(%s), time(%s) :\n %s ") % (latitude, longitude, timestamp, e)
             return None
 
@@ -527,7 +528,7 @@ class Trackpoint(Base):
         try:
             trackpoints = DBSession.query(Trackpoint).filter(and_(Trackpoint.timestamp >= start_timestamp, Trackpoint.timestamp <= end_timestamp)).all()
             return trackpoints
-        except Exception, e:
+        except Exception as e:
             print ("Error retrieving trackpoints by timerange %s - %s %s: ") % (start_timestamp, end_timestamp, e)
             return []
 
@@ -559,44 +560,61 @@ class Author(Base):
     def reprJSON(self):
         return dict(id=self.id, name=self.name, uuid=self.uuid)
 
-    def _make_hash(self, password):
-        """Generate a random salt and return a new hash for the password."""
-        if isinstance(password, unicode):
-            password = password.encode('utf-8')
-        salt = b64encode(urandom(SALT_LENGTH))
-        hashed_password =  'PBKDF2$%s$%i$%s$%s' % (
-            HASH_FUNCTION,
-            COST_FACTOR,
-            salt,
-            b64encode(pbkdf2_bin(password, salt, COST_FACTOR, KEY_LENGTH,
-                                 getattr(hashlib, HASH_FUNCTION))))
-        self.password = hashed_password
+#    def _make_hash(self, password):
+#        """Generate a random salt and return a new hash for the password."""
+#        #if isinstance(password, unicode):
+#        #    password = password.encode('utf-8')
+#        salt = b64encode(urandom(SALT_LENGTH))
+#        print('#############')
+#        print(salt)
+#        hashed_password =  'PBKDF2$%s$%i$%s$%s' % (
+#            HASH_FUNCTION,
+#            COST_FACTOR,
+#            salt,
+#            b64encode(pbkdf2_bin(password, salt, COST_FACTOR, KEY_LENGTH,
+#                                 getattr(hashlib, HASH_FUNCTION))))
+#        self.password = hashed_password
 
-    def validate_password(self, password):
-        """Check a password against an existing hash."""
-        if isinstance(password, unicode):
-            password = password.encode('utf-8')
-        print password
-        algorithm, hash_function, cost_factor, salt, hash_a = self.password.split('$')
-        assert algorithm == 'PBKDF2'
-        hash_a = b64decode(hash_a)
-        hash_b = pbkdf2_bin(password, salt, int(cost_factor), len(hash_a),
-                            getattr(hashlib, hash_function))
-        assert len(hash_a) == len(hash_b)  # we requested this from pbkdf2_bin()
-        # Same as "return hash_a == hash_b" but takes a constant time.
-        # See http://carlos.bueno.org/2011/10/timing.html
-        diff = 0
-        for char_a, char_b in izip(hash_a, hash_b):
-            diff |= ord(char_a) ^ ord(char_b)
-        return diff == 0
+    def validate_password(cls, password):
+        #cls is used instead of self, see PEP-8
+        print('verify_password with {0}, {1}'.format(password,cls.password))
+        print(pbkdf2_sha256.hash(password))
+        try:
+    	    if pbkdf2_sha256.verify(password,cls.password):
+    	        return True
+    	    else:
+    	        return False
+        except Exception as e:
+            print('Error verifying password: {0}'.format(e))
+            return False
+
+#    def validate_password(self, password):
+#        """Check a password against an existing hash."""
+#        password = password.encode('utf-8')
+#        print(password)
+#        algorithm, hash_function, cost_factor, salt, hash_a = self.password.split('$')
+#        assert algorithm == 'PBKDF2'
+#        salt=bytes(salt,'utf-8')
+#        hash_a = b64decode(hash_a)
+#        print(self.password)
+#        hash_b = pbkdf2_bin(password, salt, int(cost_factor), len(hash_a),
+#                            getattr(hashlib, hash_function))
+#        assert len(hash_a) == len(hash_b)  # we requested this from pbkdf2_bin()
+#        # Same as "return hash_a == hash_b" but takes a constant time.
+#        # See http://carlos.bueno.org/2011/10/timing.html
+#        diff = 0
+#        for char_a, char_b in izip(hash_a, hash_b.encode('utf-8')):
+#            print(char_a, char_b)
+#            diff |= ord(char_a) ^ ord(char_b)
+#        return diff == 0
 
     def _set_password(self, password):
         hashed_password = password
 
-        if isinstance(password, unicode):
-            password_8bit = password.encode('UTF-8')
-        else:
-            password_8bit = password
+        #if isinstance(password, unicode):
+        #    password_8bit = password.encode('UTF-8')
+        #else:
+        #    password_8bit = password
 
         salt = sha1()
         salt.update(os.urandom(60))
@@ -604,8 +622,8 @@ class Author(Base):
         hash.update(password_8bit + salt.hexdigest())
         hashed_password = salt.hexdigest() + hash.hexdigest()
 
-        if not isinstance(hashed_password, unicode):
-            hashed_password = hashed_password.decode('UTF-8')
+        #if not isinstance(hashed_password, unicode):
+        #    hashed_password = hashed_password.decode('UTF-8')
 
         self.password = hashed_password
 
@@ -614,8 +632,8 @@ class Author(Base):
         try:
             author = DBSession.query(Author).filter(Author.name == name).one()
             return author
-        except Exception, e:
-            print "Error retrieving author %s: ",e
+        except Exception as e:
+            print("Error retrieving author %s: ",e) 
             return None
 
     @classmethod

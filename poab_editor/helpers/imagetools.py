@@ -16,7 +16,7 @@ def get_exif(image):
     exif = json.loads(
         os.popen(('%s -j -ShutterSpeed -Aperture -ISO -FocalLength -DateTimeOriginal %s%s') % (exiftool, image.location, image.name)).read()
     )
-    print exif
+    print(exif)
     try:
         aperture = exif[0]['Aperture']
     except:
@@ -34,6 +34,6 @@ def get_exif(image):
     except:
         iso = None
     timestamp_original = datetime.datetime.strptime(exif[0]['DateTimeOriginal'], "%Y:%m:%d %H:%M:%S")
-    print aperture, shutter, focal_length, iso, timestamp_original
+    print(aperture, shutter, focal_length, iso, timestamp_original)
     return aperture, shutter, focal_length, iso, timestamp_original
     

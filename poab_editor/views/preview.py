@@ -36,7 +36,7 @@ def preview(request):
         preview = log.content
         img_large_w='500'
         for imgid in imgid_list:
-            print imgid
+            print(imgid)
             id = re.search("^\[imgid(\d{1,})\]$",imgid).group(1) #gets the id in [imgid123]
             image = Image.get_image_by_id(id)
             if image:

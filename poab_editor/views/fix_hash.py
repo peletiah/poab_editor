@@ -46,10 +46,10 @@ def hashfix(request):
     for image in images:
         hash = hashlib.sha256(open(image.location+image.name).read()).hexdigest()
         if image.hash != hash:
-            print '#', n
+            print('#', n)
             n=n+1
-            print image.id, image.location+image.name, image.hash
-            print image.id, image.location+image.name, hash, '\n'
+            print(image.id, image.location+image.name, image.hash)
+            print(image.id, image.location+image.name, hash, '\n')
             image.hash = hash
     return Response('OK')
         

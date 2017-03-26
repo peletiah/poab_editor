@@ -63,6 +63,6 @@ def safe_file_local(filelocation, file):
 def file_exists(files_in_db, filehash):
     for file in files_in_db:
         if file.hash == filehash:
-            print "File %s already in DB" % file.location
+            print("File %s already in DB" % file.location)
             return True
     return False

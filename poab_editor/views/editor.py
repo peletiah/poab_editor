@@ -103,7 +103,7 @@ def delete_log(request):
     log_json = request.json_body
     log_id = log_json['id']
     log = Log.get_log_by_id(log_id)
-    print log.id
+    print(log.id)
     DBSession.delete(log)
     DBSession.flush()
     return Response(log.topic)
@@ -133,7 +133,7 @@ def save_log(request):
     name=etappe['name']
 
     if etappe['id']:
-        print 'etappe-id:'+ str(etappe['id'])
+        print('etappe-id:'+ str(etappe['id']))
         etappe = Etappe.get_etappe_by_id(etappe['id'])
         etappe.start_date = start_date
         etappe.end_date = end_date
@@ -154,19 +154,19 @@ def save_log(request):
         log = Log(topic=topic, content=content, author=author.id, etappe=etappe.id, created=timetools.now(), uuid=str(uuid.uuid4()))
     DBSession.add(log)
     DBSession.flush()
-    print 'logid='+str(log.id)
+    print('logid='+str(log.id))
     for image in images:
         try:
             if image['id']:
-                print 'imageid:'+ str(image['id'])
+                print('imageid:'+ str(image['id']))
                 image = Image.get_image_by_id(image['id'])
                 log.image.append(image)
-        except Exception, e:
-            print e
-            print 'ERROR while saving log'
+        except Exception as e:
+            print(e)
+            print('ERROR while saving log')
     for track in tracks:
         if track['id']:
-            print 'trackid:'+ str(track['id'])
+            print('trackid:'+ str(track['id']))
             track = Track.get_track_by_id(track['id'])
             log.track.append(track)
     return Response(json.dumps(dict(log_id=log.id, etappe_id=etappe.id),cls=ComplexEncoder))
@@ -175,7 +175,7 @@ def save_log(request):
  
 @view_config(route_name='update_image_metadata')
 def update_image_metadata(request):
-    print request.json_body
+    print(request.json_body)
     for image_dict in request.json_body:
         try:
             if image_dict['id']:
@@ -188,9 +188,9 @@ def update_image_metadata(request):
                     image.comment = image_dict['comment']
                     image.last_change = timetools.now()
                     DBSession.add(image)
-        except Exception, e:
-            print e
-            print 'ERROR on updating metadata'
+        except Exception as e:
+            print(e)
+            print('ERROR on updating metadata')
             
     return Response('ok')
  
@@ -200,9 +200,9 @@ def update_image_metadata(request):
 def imageupload(request):
     filelist = request.POST.getall('uploadedFile')
     upload = request.POST.get('upload')
-    print request.POST.get('upload')
-    print request.POST.keys()
-    print filelist
+    print(request.POST.get('upload'))
+    print(request.POST.keys())
+    print(filelist)
     
     owner = authenticated_userid(request)
     author = Author.get_author(owner)
@@ -218,9 +218,9 @@ def imageupload(request):
     images=list()
 
     for file in filelist:
-        print '\n'
-        print file.filename
-        print '\n'
+        print('\n')
+        print(file.filename)
+        print('\n')
         filehash = hashlib.sha256(file.value).hexdigest()
 
         if not filetools.file_exists(images_in_db, filehash): #TODO: Uhm, wouldn't a simple db-query for the hash work too???
@@ -242,7 +242,7 @@ def imageupload(request):
             DBSession.flush()
             image_json = image.reprJSON()
             images.append(image_json)
-            print images
+            print(images)
         else:
             image = Image.get_image_by_hash(filehash)
             image_json = image.reprJSON()
@@ -257,7 +257,7 @@ def delete_image(request):
     image_json = request.json_body
     image_id = image_json['id']
     image = Image.get_image_by_id(image_id)
-    print image.id
+    print(image.id)
     DBSession.delete(image)
     DBSession.flush()
     return Response(image.name)
@@ -275,10 +275,10 @@ def add_trackpoints_to_db(trackpoints, track):
             try:
                 DBSession.add(trackpoint)
                 DBSession.flush()
-                print trackpoint.timestamp
-            except Exception, e:
-                print "\n\nTrackpoint could not be added!\n\n"
-                print e
+                print(trackpoint.timestamp)
+            except Exception as e:
+                print("\n\nTrackpoint could not be added!\n\n")
+                print(e)
                 DBSession.rollback()
 
 
@@ -295,10 +295,10 @@ def add_track_to_db(track_details, author):
         try:
             DBSession.add(track)
             DBSession.flush()
-        except Exception, e:
+        except Exception as e:
             DBSession.rollback()
-            print "\n\nTrack could not be added!\n\n"
-            print e
+            print("\n\nTrack could not be added!\n\n")
+            print(e)
             return None
     else:
         track=track_in_db # We've found this track in the DB
@@ -311,9 +311,9 @@ def add_track_to_db(track_details, author):
 def trackupload(request):
     filelist = request.POST.getall('uploadedFile')
     upload = request.POST.get('upload')
-    print request.POST.get('upload')
-    print request.POST.keys()
-    print filelist
+    print(request.POST.get('upload'))
+    print(request.POST.keys())
+    print(filelist)
  
     owner = authenticated_userid(request)
     author = Author.get_author(owner)
@@ -328,9 +328,9 @@ def trackupload(request):
     for file in filelist:
         if upload: #only save files when upload-checkbox has been ticked
             filehash = filetools.safe_file_local(trackdir, file)
-            print '\n'
-            print file.filename
-            print '\n'
+            print('\n')
+            print(file.filename)
+            print('\n')
 
         parsed_tracks = gpxtools.parse_gpx(trackdir+file.filename)
 

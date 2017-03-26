@@ -17,7 +17,8 @@ requires = [
     'waitress',
     'psycopg2',
     'requests',
-    'lxml'
+    'lxml',
+    'passlib'
     ]
 
 setup(name='poab_editor',

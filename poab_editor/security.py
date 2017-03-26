@@ -12,5 +12,5 @@ def role_filter(name, request):
         try:
             return [author.id]
         except AttributeError:
-            print 'No author defined yet'
+            print('No author defined yet')
             return None
